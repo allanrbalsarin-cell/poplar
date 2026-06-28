@@ -292,14 +292,14 @@
           </div>
           <div class="form-grid-2">
             <div class="field">
+              <label>Cidade</label>
+              <input id="cidade" type="text" placeholder="Ex: São Paulo" list="cidades-list" oninput="clearErr('cidade');atualizarBairros()" autocomplete="off">
+              <span class="field-err" id="err-cidade">Informe a cidade</span>
+            </div>
+            <div class="field">
               <label>Bairro</label>
               <input id="bairro" type="text" placeholder="Ex: Jardins" list="bairros-list" oninput="clearErr('bairro')" autocomplete="off">
               <span class="field-err" id="err-bairro">Informe o bairro</span>
-            </div>
-            <div class="field">
-              <label>Cidade</label>
-              <input id="cidade" type="text" placeholder="Ex: São Paulo" list="cidades-list" oninput="clearErr('cidade')" autocomplete="off">
-              <span class="field-err" id="err-cidade">Informe a cidade</span>
             </div>
           </div>
           <div class="form-grid-5">
@@ -314,18 +314,7 @@
             <div class="field"><label>Vagas</label><input id="vagas" type="text" placeholder="2" oninput="numericOnly(this)" inputmode="numeric"></div>
           </div>
 
-          <datalist id="bairros-list">
-            <option value="Jardins"><option value="Moema"><option value="Vila Olímpia"><option value="Itaim Bibi">
-            <option value="Pinheiros"><option value="Vila Madalena"><option value="Perdizes"><option value="Higienópolis">
-            <option value="Brooklin"><option value="Morumbi"><option value="Santo André"><option value="Alphaville">
-            <option value="Barra Funda"><option value="Lapa"><option value="Santana"><option value="Vila Mariana">
-            <option value="Ipiranga"><option value="Campo Belo"><option value="Paraíso"><option value="Bela Vista">
-            <option value="Ipanema"><option value="Leblon"><option value="Copacabana"><option value="Barra da Tijuca">
-            <option value="Botafogo"><option value="Flamengo"><option value="Lagoa"><option value="Tijuca">
-            <option value="Lourdes"><option value="Savassi"><option value="Funcionários"><option value="Santa Efigênia">
-            <option value="Meireles"><option value="Aldeota"><option value="Cocó"><option value="Varjota">
-            <option value="Batel"><option value="Água Verde"><option value="Bigorrilho"><option value="Ecoville">
-          </datalist>
+          <datalist id="bairros-list"></datalist>
           <datalist id="cidades-list">
             <option value="São Paulo"><option value="Rio de Janeiro"><option value="Belo Horizonte">
             <option value="Curitiba"><option value="Porto Alegre"><option value="Fortaleza"><option value="Salvador">
@@ -466,6 +455,33 @@
       input.value = '';
     }
     clearErr('valor');
+  }
+
+  /* ── Bairros por cidade ── */
+  const BAIRROS = {
+    'São Paulo':           ['Jardins','Moema','Vila Olímpia','Itaim Bibi','Pinheiros','Vila Madalena','Perdizes','Higienópolis','Brooklin','Morumbi','Campo Belo','Paraíso','Bela Vista','Vila Mariana','Santana','Lapa','Barra Funda','Ipiranga','Tatuapé','Mooca','Aclimação','Liberdade','Santa Cecília','Consolação'],
+    'Rio de Janeiro':      ['Ipanema','Leblon','Copacabana','Barra da Tijuca','Botafogo','Flamengo','Lagoa','Tijuca','Santa Teresa','Recreio','Jacarepaguá','Urca','Gávea','São Conrado','Humaitá','Catete','Glória'],
+    'Belo Horizonte':      ['Lourdes','Savassi','Funcionários','Santa Efigênia','Buritis','Belvedere','Mangabeiras','Pampulha','Anchieta','Sion','Gutierrez','Serra','Santo Antônio'],
+    'Curitiba':            ['Batel','Água Verde','Bigorrilho','Ecoville','Alto da Glória','Juvevê','Cabral','Mercês','Champagnat','Centro Cívico','Hugo Lange','Rebouças'],
+    'Fortaleza':           ['Meireles','Aldeota','Cocó','Varjota','Dionísio Torres','Mucuripe','Papicu','Benfica','Guararapes','De Lourdes'],
+    'Porto Alegre':        ['Moinhos de Vento','Bela Vista','Menino Deus','Rio Branco','Petrópolis','Auxiliadora','Boa Vista','Mont Serrat','Independência','Floresta'],
+    'Salvador':            ['Barra','Vitória','Graça','Ondina','Rio Vermelho','Pituba','Costa Azul','Itaigara','Caminho das Árvores','Horto Florestal'],
+    'Recife':              ['Boa Viagem','Graças','Casa Forte','Espinheiro','Aflitos','Parnamirim','Derby','Tamarineira','Ilha do Leite','Madalena'],
+    'Florianópolis':       ['Trindade','Agronômica','Itacorubi','Córrego Grande','Jurerê','Lagoa da Conceição','Ingleses','Coqueiros','Estreito','Centro'],
+    'Campinas':            ['Cambuí','Bosque','Nova Campinas','Taquaral','Jardim Guanabara','Barão Geraldo','Jardim das Flores','Chácara da Barra'],
+    'Goiânia':             ['Setor Bueno','Setor Marista','Setor Oeste','Jardim Goiás','Setor Sul','Aldeota','Setor Universitário'],
+    'Manaus':              ['Adrianópolis','Aleixo','Ponta Negra','Chapada','Nossa Senhora das Graças','Parque Dez'],
+    'Natal':               ['Ponta Negra','Capim Macio','Lagoa Nova','Petrópolis','Tirol','Candelária'],
+    'Vitória':             ['Praia do Canto','Bento Ferreira','Jardim da Penha','Mata da Praia','Enseada do Suá','Santa Lúcia'],
+    'Joinville':           ['América','Atiradores','Boa Vista','Centro','Costa e Silva','Glória'],
+    'Londrina':            ['Gleba Palhano','Centro','Jardim Shangri-lá','Higienópolis','Centro Cívico'],
+  };
+
+  function atualizarBairros() {
+    const cidade   = document.getElementById('cidade').value.trim();
+    const datalist = document.getElementById('bairros-list');
+    const bairros  = BAIRROS[cidade] || [];
+    datalist.innerHTML = bairros.map(b => `<option value="${b}">`).join('');
   }
 
   function clearErr(id) {

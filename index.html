@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PopLar — Anúncios de imóveis com IA</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --qa-blue: #1F4EB5;
+      --qa-blue-dark: #163A8A;
+      --qa-blue-light: #E8EFFE;
+      --qa-gray-1: #F7F5F2;
+      --qa-gray-2: #EEEBE5;
+      --qa-gray-3: #D4D0C8;
+      --qa-gray-4: #8E8980;
+      --qa-gray-5: #4A4742;
+      --qa-black: #111111;
+      --qa-white: #FFFFFF;
+      --qa-red: #C0392B;
+      --qa-green: #1A7A4A;
+      --qa-green-light: #E3F5EC;
+    }
+
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--qa-gray-1); min-height: 100vh; }
+
+    /* LAYOUT */
+    #app { display: flex; min-height: 100vh; }
+
+    /* SIDEBAR */
+    #sidebar {
+      width: 220px; min-width: 220px; background: var(--qa-blue);
+      display: flex; flex-direction: column; padding: 24px 0;
+      position: fixed; top: 0; left: 0; height: 100vh; z-index: 100;
+      transition: transform 0.25s ease;
+    }
+    .sidebar-logo { padding: 0 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.15); margin-bottom: 20px; }
+    .logo-mark { display: flex; align-items: center; gap: 10px; }
+    .logo-icon { width: 32px; height: 32px; border-radius: 8px; background: white; display: flex; align-items: center; justify-content: center; }
+    .logo-icon i { color: var(--qa-blue); font-size: 17px; }
+    .logo-text { display: flex; flex-direction: column; }
+    .logo-name { font-size: 17px; font-weight: 600; color: white; letter-spacing: -0.01em; line-height: 1.1; }
+    .logo-name span { opacity: 0.55; font-weight: 400; }
+    .logo-sub { font-size: 10px; color: rgba(255,255,255,0.4); letter-spacing: 0.04em; margin-top: 2px; }
+    .sidebar-label { font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.35); letter-spacing: 0.14em; text-transform: uppercase; padding: 0 20px; margin-bottom: 4px; }
+    .sidebar-item { display: flex; align-items: center; gap: 10px; padding: 10px 20px; cursor: pointer; font-size: 13px; color: rgba(255,255,255,0.65); transition: all 0.15s; text-decoration: none; border: none; background: transparent; width: 100%; text-align: left; font-family: inherit; }
+    .sidebar-item i { font-size: 16px; }
+    .sidebar-item:hover { color: white; background: rgba(255,255,255,0.08); }
+    .sidebar-item.active { color: white; background: rgba(255,255,255,0.15); font-weight: 500; }
+    .sidebar-divider { height: 1px; background: rgba(255,255,255,0.12); margin: 14px 0; }
+    .sidebar-bottom { margin-top: auto; padding: 0 16px; }
+    .credits-pill { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); border-radius: 10px; padding: 12px 14px; }
+    .credits-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+    .credits-label { font-size: 11px; color: rgba(255,255,255,0.5); }
+    .credits-count { font-size: 12px; font-weight: 600; color: white; }
+    .credits-bar { height: 4px; background: rgba(255,255,255,0.18); border-radius: 2px; }
+    .credits-fill { height: 100%; width: 63%; background: rgba(255,255,255,0.8); border-radius: 2px; }
+
+    /* OVERLAY (mobile) */
+    #overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 99; }
+    #overlay.show { display: block; }
+
+    /* MAIN */
+    #main { flex: 1; margin-left: 220px; display: flex; flex-direction: column; min-height: 100vh; }
+
+    #topbar { height: 56px; background: white; border-bottom: 1px solid var(--qa-gray-2); display: flex; align-items: center; justify-content: space-between; padding: 0 28px; position: sticky; top: 0; z-index: 5; }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .topbar-title { font-size: 15px; font-weight: 500; color: var(--qa-black); }
+    .topbar-right { display: flex; align-items: center; gap: 10px; }
+    .hamburger { display: none; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--qa-gray-2); background: white; cursor: pointer; font-size: 18px; color: var(--qa-gray-5); }
+    .btn-ghost { display: flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--qa-gray-2); background: white; cursor: pointer; font-size: 13px; color: var(--qa-gray-5); font-family: inherit; transition: background 0.15s; }
+    .btn-ghost:hover { background: var(--qa-gray-1); }
+    .btn-primary { display: flex; align-items: center; gap: 7px; padding: 9px 18px; border-radius: 8px; border: none; cursor: pointer; font-size: 13px; font-weight: 600; background: var(--qa-blue); color: white; font-family: inherit; transition: background 0.15s; }
+    .btn-primary:hover { background: var(--qa-blue-dark); }
+    .btn-primary:disabled, .btn-ghost:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* VIEWS */
+    #content { padding: 24px 28px 48px; display: flex; flex-direction: column; gap: 20px; max-width: 900px; width: 100%; }
+    #history-view { display: none; padding: 24px 28px 48px; flex-direction: column; gap: 20px; max-width: 900px; width: 100%; }
+    #history-view.show { display: flex; }
+
+    /* STEPS */
+    .steps-row { display: flex; align-items: center; }
+    .step-item { display: flex; align-items: center; gap: 8px; }
+    .step-dot { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; border: 2px solid var(--qa-gray-3); color: var(--qa-gray-4); background: white; flex-shrink: 0; }
+    .step-dot.done { background: var(--qa-blue); border-color: var(--qa-blue); color: white; }
+    .step-dot.active { border-color: var(--qa-blue); color: var(--qa-blue); background: var(--qa-blue-light); }
+    .step-label { font-size: 12px; color: var(--qa-gray-4); }
+    .step-label.active { color: var(--qa-black); font-weight: 500; }
+    .step-line { height: 1px; width: 32px; background: var(--qa-gray-3); margin: 0 8px; flex-shrink: 0; }
+    .step-line.done { background: var(--qa-blue); }
+
+    /* CARDS */
+    .section-card { background: white; border-radius: 14px; border: 1px solid var(--qa-gray-2); overflow: hidden; }
+    .section-header { padding: 14px 20px; border-bottom: 1px solid var(--qa-gray-2); display: flex; align-items: center; gap: 10px; }
+    .section-icon { font-size: 16px; color: var(--qa-blue); }
+    .section-title { font-size: 14px; font-weight: 500; color: var(--qa-black); }
+    .section-body { padding: 20px; }
+
+    /* FORM */
+    .form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+    .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px; }
+    .form-grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-top: 14px; }
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field label { font-size: 11px; font-weight: 600; color: var(--qa-gray-4); letter-spacing: 0.06em; text-transform: uppercase; }
+    .field input, .field select, .field textarea { padding: 9px 12px; border-radius: 8px; border: 1px solid var(--qa-gray-2); background: var(--qa-gray-1); font-size: 13px; color: var(--qa-black); font-family: inherit; outline: none; transition: border-color 0.15s, background 0.15s; width: 100%; }
+    .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--qa-blue); background: white; }
+    .field textarea { resize: vertical; min-height: 80px; }
+    .field select { appearance: none; cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238E8980' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
+    .char-counter { font-size: 11px; color: var(--qa-gray-4); text-align: right; }
+    .char-counter.warn { color: #C67C0A; }
+    .char-counter.over { color: var(--qa-red); }
+
+    /* PLATFORMS */
+    .platforms-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+    .platform-pill { display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 50px; border: 1px solid var(--qa-gray-2); background: var(--qa-gray-1); cursor: pointer; font-size: 13px; font-weight: 500; color: var(--qa-gray-5); transition: all 0.15s; user-select: none; font-family: inherit; }
+    .platform-pill i { font-size: 15px; }
+    .platform-pill:hover { border-color: var(--qa-blue); color: var(--qa-blue); }
+    .platform-pill.sel { border-color: var(--qa-blue); background: var(--qa-blue-light); color: var(--qa-blue); }
+
+    /* TONE */
+    .tone-grid { display: flex; gap: 10px; margin-top: 14px; }
+    .tone-pill { flex: 1; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--qa-gray-2); background: var(--qa-gray-1); cursor: pointer; text-align: center; transition: all 0.15s; font-family: inherit; }
+    .tone-pill .tone-name { font-size: 13px; font-weight: 500; color: var(--qa-gray-5); display: block; }
+    .tone-pill .tone-desc { font-size: 11px; color: var(--qa-gray-4); margin-top: 3px; display: block; }
+    .tone-pill.sel { border-color: var(--qa-blue); background: var(--qa-blue-light); }
+    .tone-pill.sel .tone-name { color: var(--qa-blue); }
+
+    /* LOADING */
+    #loading { display: none; flex-direction: column; align-items: center; justify-content: center; padding: 56px 24px; gap: 16px; }
+    #loading.show { display: flex; }
+    .spinner { width: 36px; height: 36px; border: 3px solid var(--qa-gray-2); border-top-color: var(--qa-blue); border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { font-size: 14px; color: var(--qa-gray-4); }
+
+    /* RESULTS */
+    #results { display: none; flex-direction: column; }
+    #results.show { display: flex; animation: fadeSlideIn 0.3s ease; }
+    @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .results-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 10px; }
+    .results-title { font-size: 16px; font-weight: 500; color: var(--qa-black); }
+    .results-header-right { display: flex; align-items: center; gap: 10px; }
+    .success-badge { display: flex; align-items: center; gap: 6px; background: var(--qa-green-light); color: var(--qa-green); border-radius: 50px; padding: 5px 12px; font-size: 12px; font-weight: 500; }
+
+    .result-tabs { display: flex; border-bottom: 1px solid var(--qa-gray-2); overflow-x: auto; background: var(--qa-gray-1); }
+    .result-tab { display: flex; align-items: center; gap: 7px; padding: 11px 16px; font-size: 13px; font-weight: 500; color: var(--qa-gray-4); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s; white-space: nowrap; font-family: inherit; background: transparent; border-left: none; border-right: none; border-top: none; }
+    .result-tab i { font-size: 15px; }
+    .result-tab:hover { color: var(--qa-black); }
+    .result-tab.active { color: var(--qa-blue); border-bottom-color: var(--qa-blue); background: white; }
+
+    .result-panel { display: none; padding: 20px; }
+    .result-panel.show { display: flex; flex-direction: column; gap: 16px; }
+    .result-panel-actions { display: flex; justify-content: flex-end; }
+    .result-field { display: flex; flex-direction: column; gap: 7px; }
+    .result-field-header { display: flex; align-items: center; justify-content: space-between; }
+    .result-field-label { font-size: 11px; font-weight: 600; color: var(--qa-gray-4); letter-spacing: 0.1em; text-transform: uppercase; }
+    .result-text { padding: 14px 16px; border-radius: 8px; border: 1px solid var(--qa-gray-2); background: var(--qa-gray-1); font-size: 13px; color: var(--qa-black); line-height: 1.7; white-space: pre-wrap; font-family: inherit; }
+    .copy-btn { display: flex; align-items: center; gap: 5px; padding: 5px 11px; border-radius: 7px; border: 1px solid var(--qa-gray-2); background: white; cursor: pointer; font-size: 12px; font-weight: 500; color: var(--qa-gray-5); font-family: inherit; transition: all 0.15s; }
+    .copy-btn:hover { background: var(--qa-blue-light); border-color: var(--qa-blue); color: var(--qa-blue); }
+    .copy-btn.copied { color: var(--qa-green); border-color: var(--qa-green); background: var(--qa-green-light); }
+    .copy-all-btn { display: flex; align-items: center; gap: 5px; padding: 6px 14px; border-radius: 7px; border: 1px solid var(--qa-blue); background: var(--qa-blue-light); cursor: pointer; font-size: 12px; font-weight: 600; color: var(--qa-blue); font-family: inherit; transition: all 0.15s; }
+    .copy-all-btn:hover { background: var(--qa-blue); color: white; }
+    .copy-all-btn.copied { color: var(--qa-green); border-color: var(--qa-green); background: var(--qa-green-light); }
+
+    /* ERROR */
+    #error-msg { display: none; align-items: center; gap: 10px; background: #FEF0EF; border: 1px solid #FACCCA; border-radius: 10px; padding: 12px 16px; font-size: 13px; color: var(--qa-red); }
+    #error-msg.show { display: flex; }
+
+    /* HISTORY */
+    .history-toolbar { display: flex; align-items: center; justify-content: space-between; }
+    .history-title { font-size: 18px; font-weight: 600; color: var(--qa-black); }
+    .history-empty { text-align: center; padding: 56px 24px; color: var(--qa-gray-4); font-size: 14px; line-height: 1.6; }
+    .history-empty i { font-size: 36px; display: block; margin-bottom: 12px; opacity: 0.35; }
+    .history-card { background: white; border-radius: 14px; border: 1px solid var(--qa-gray-2); overflow: hidden; transition: box-shadow 0.15s; }
+    .history-card:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+    .history-card-header { padding: 16px 18px; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+    .history-card-info { flex: 1; min-width: 0; }
+    .history-card-title { font-size: 14px; font-weight: 500; color: var(--qa-black); }
+    .history-card-meta { font-size: 12px; color: var(--qa-gray-4); margin-top: 3px; }
+    .history-card-platforms { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .history-platform-tag { font-size: 11px; background: var(--qa-blue-light); color: var(--qa-blue); border-radius: 4px; padding: 2px 8px; font-weight: 500; }
+    .history-card-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .btn-sm { display: flex; align-items: center; gap: 5px; padding: 6px 10px; border-radius: 7px; border: 1px solid var(--qa-gray-2); background: white; cursor: pointer; font-size: 12px; color: var(--qa-gray-5); font-family: inherit; transition: background 0.15s; }
+    .btn-sm:hover { background: var(--qa-gray-1); }
+    .btn-sm-danger { display: flex; align-items: center; gap: 5px; padding: 6px 10px; border-radius: 7px; border: 1px solid #FACCCA; background: white; cursor: pointer; font-size: 12px; color: var(--qa-red); font-family: inherit; transition: background 0.15s; }
+    .btn-sm-danger:hover { background: #FEF0EF; }
+    .history-body { display: none; border-top: 1px solid var(--qa-gray-2); padding: 18px; }
+    .history-body.open { display: block; }
+    .history-platform-section { margin-bottom: 20px; }
+    .history-platform-section:last-child { margin-bottom: 0; }
+    .history-platform-label { font-size: 12px; font-weight: 600; color: var(--qa-blue); display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
+    .history-field { margin-bottom: 12px; }
+    .history-field:last-child { margin-bottom: 0; }
+    .history-field-label { font-size: 10px; font-weight: 600; color: var(--qa-gray-4); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 5px; }
+    .history-field-text { padding: 10px 14px; border-radius: 8px; border: 1px solid var(--qa-gray-2); background: var(--qa-gray-1); font-size: 13px; color: var(--qa-black); line-height: 1.7; white-space: pre-wrap; font-family: inherit; }
+
+    @media (max-width: 768px) {
+      #sidebar { transform: translateX(-100%); }
+      #sidebar.open { transform: translateX(0); }
+      #main { margin-left: 0; }
+      .form-grid-3, .form-grid-5 { grid-template-columns: 1fr 1fr; }
+      .form-grid-2 { grid-template-columns: 1fr; }
+      .tone-grid { flex-direction: column; }
+      .hamburger { display: flex; }
+      #topbar { padding: 0 16px; }
+      #content, #history-view { padding: 20px 16px 48px; }
+    }
+  </style>
+</head>
+<body>
+<div id="overlay" onclick="closeSidebar()"></div>
+<div id="app">
+  <nav id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">
+        <div class="logo-icon"><i class="ti ti-home-heart"></i></div>
+        <div class="logo-text">
+          <span class="logo-name">Pop<span>Lar</span></span>
+          <span class="logo-sub">anúncios com IA</span>
+        </div>
+      </div>
+    </div>
+    <span class="sidebar-label">Menu</span>
+    <button class="sidebar-item active" id="nav-gerar" onclick="showView('gerar')"><i class="ti ti-wand"></i> Gerar anúncio</button>
+    <button class="sidebar-item" id="nav-historico" onclick="showView('historico')"><i class="ti ti-history"></i> Histórico</button>
+    <a class="sidebar-item" href="#"><i class="ti ti-building"></i> Meus imóveis</a>
+    <div class="sidebar-divider"></div>
+    <span class="sidebar-label">Conta</span>
+    <a class="sidebar-item" href="#"><i class="ti ti-settings"></i> Configurações</a>
+    <div class="sidebar-bottom">
+      <div class="credits-pill">
+        <div class="credits-row">
+          <span class="credits-label">Créditos restantes</span>
+          <i class="ti ti-bolt" style="color:rgba(255,255,255,0.6);font-size:15px"></i>
+        </div>
+        <div class="credits-count">19 / 30 gerações</div>
+        <div class="credits-bar" style="margin-top:8px"><div class="credits-fill"></div></div>
+      </div>
+    </div>
+  </nav>
+
+  <div id="main">
+    <div id="topbar">
+      <div class="topbar-left">
+        <button class="hamburger" onclick="toggleSidebar()"><i class="ti ti-menu-2"></i></button>
+        <span class="topbar-title" id="topbar-title">Novo anúncio</span>
+      </div>
+      <div class="topbar-right" id="topbar-actions">
+        <button class="btn-ghost" onclick="clearForm()"><i class="ti ti-refresh"></i> Limpar</button>
+        <button class="btn-primary" id="gen-btn" onclick="generate()"><i class="ti ti-wand"></i> Gerar com IA</button>
+      </div>
+    </div>
+
+    <!-- GENERATE VIEW -->
+    <div id="content">
+      <div class="steps-row">
+        <div class="step-item">
+          <div class="step-dot done" id="s1"><i class="ti ti-check" style="font-size:11px"></i></div>
+          <span class="step-label active">Dados do imóvel</span>
+        </div>
+        <div class="step-line done"></div>
+        <div class="step-item">
+          <div class="step-dot active" id="s2">2</div>
+          <span class="step-label active">Plataformas</span>
+        </div>
+        <div class="step-line" id="l2"></div>
+        <div class="step-item">
+          <div class="step-dot" id="s3">3</div>
+          <span class="step-label" id="sl3">Resultado</span>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-header">
+          <i class="ti ti-home-2 section-icon"></i>
+          <span class="section-title">Dados do imóvel</span>
+        </div>
+        <div class="section-body">
+          <div class="form-grid-3">
+            <div class="field"><label>Tipo</label><select id="tipo"><option>Apartamento</option><option>Casa</option><option>Cobertura</option><option>Studio</option><option>Sala Comercial</option><option>Terreno</option></select></div>
+            <div class="field"><label>Finalidade</label><select id="finalidade"><option>Venda</option><option>Aluguel</option></select></div>
+            <div class="field"><label>Valor (R$)</label><input id="valor" type="text" placeholder="Ex: 1.200.000"></div>
+          </div>
+          <div class="form-grid-2">
+            <div class="field"><label>Bairro</label><input id="bairro" type="text" placeholder="Ex: Jardins"></div>
+            <div class="field"><label>Cidade</label><input id="cidade" type="text" placeholder="Ex: São Paulo"></div>
+          </div>
+          <div class="form-grid-5">
+            <div class="field"><label>Área m²</label><input id="area" type="text" placeholder="180"></div>
+            <div class="field"><label>Quartos</label><input id="quartos" type="text" placeholder="4"></div>
+            <div class="field"><label>Suítes</label><input id="suites" type="text" placeholder="2"></div>
+            <div class="field"><label>Banheiros</label><input id="banheiros" type="text" placeholder="3"></div>
+            <div class="field"><label>Vagas</label><input id="vagas" type="text" placeholder="2"></div>
+          </div>
+          <div class="form-grid-2">
+            <div class="field" style="margin-top:14px">
+              <label>Diferenciais</label>
+              <textarea id="diferenciais" placeholder="Ex: varanda gourmet, vista panorâmica, recém reformado, piscina privativa..." maxlength="500" oninput="updateCounter()"></textarea>
+              <span class="char-counter" id="char-counter">0 / 500</span>
+            </div>
+            <div style="margin-top:14px">
+              <label style="font-size:11px;font-weight:600;color:var(--qa-gray-4);letter-spacing:0.06em;text-transform:uppercase;display:block;margin-bottom:6px">Tom de voz</label>
+              <div class="tone-grid">
+                <div class="tone-pill sel" onclick="selectTone(this,'sofisticado')"><span class="tone-name">Sofisticado</span><span class="tone-desc">Luxo e exclusividade</span></div>
+                <div class="tone-pill" onclick="selectTone(this,'direto')"><span class="tone-name">Direto</span><span class="tone-desc">Objetivo e claro</span></div>
+                <div class="tone-pill" onclick="selectTone(this,'caloroso')"><span class="tone-name">Caloroso</span><span class="tone-desc">Família e lar</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-header">
+          <i class="ti ti-layout-grid section-icon"></i>
+          <span class="section-title">Plataformas de destino</span>
+        </div>
+        <div class="section-body">
+          <div class="platforms-grid">
+            <div class="platform-pill sel" data-pid="zap" onclick="togglePlatform(this)"><i class="ti ti-home"></i> Zap Imóveis</div>
+            <div class="platform-pill" data-pid="olx" onclick="togglePlatform(this)"><i class="ti ti-tag"></i> OLX</div>
+            <div class="platform-pill sel" data-pid="instagram" onclick="togglePlatform(this)"><i class="ti ti-camera"></i> Instagram</div>
+            <div class="platform-pill" data-pid="facebook" onclick="togglePlatform(this)"><i class="ti ti-users"></i> Facebook</div>
+            <div class="platform-pill sel" data-pid="whatsapp" onclick="togglePlatform(this)"><i class="ti ti-message-circle"></i> WhatsApp</div>
+            <div class="platform-pill" data-pid="tiktok" onclick="togglePlatform(this)"><i class="ti ti-music"></i> TikTok</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="error-msg"><i class="ti ti-alert-circle"></i><span id="error-text"></span></div>
+      <div id="loading"><div class="spinner"></div><span class="loading-text">Gerando anúncios com IA...</span></div>
+
+      <div id="results">
+        <div class="results-header">
+          <span class="results-title">Anúncios gerados</span>
+          <div class="results-header-right">
+            <div class="success-badge"><i class="ti ti-check" style="font-size:13px"></i><span id="result-count">3 plataformas</span></div>
+            <button class="btn-ghost" id="regen-btn" onclick="generate()"><i class="ti ti-refresh"></i> Regenerar</button>
+          </div>
+        </div>
+        <div class="section-card">
+          <div class="result-tabs" id="result-tabs"></div>
+          <div id="result-panels"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HISTORY VIEW -->
+    <div id="history-view">
+      <div class="history-toolbar">
+        <span class="history-title">Histórico</span>
+        <button class="btn-ghost" id="clear-history-btn" onclick="clearHistory()" style="display:none"><i class="ti ti-trash"></i> Limpar tudo</button>
+      </div>
+      <div id="history-list"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let tone = 'sofisticado';
+  let lastResults = {};
+  let lastFormData = {};
+
+  const PLATFORM_ICONS  = { zap:'ti-home', olx:'ti-tag', instagram:'ti-camera', facebook:'ti-users', whatsapp:'ti-message-circle', tiktok:'ti-music' };
+  const PLATFORM_LABELS = { zap:'Zap Imóveis', olx:'OLX', instagram:'Instagram', facebook:'Facebook', whatsapp:'WhatsApp', tiktok:'TikTok' };
+  const FIELD_LABELS    = { titulo:'Título', descricao:'Descrição', legenda:'Legenda', hashtags:'Hashtags', feed:'Post no feed', grupo:'Post em grupos', mensagem:'Mensagem', roteiro:'Roteiro do vídeo' };
+
+  /* ── Mobile sidebar ── */
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('overlay').classList.toggle('show');
+  }
+  function closeSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('overlay').classList.remove('show');
+  }
+
+  /* ── View switching ── */
+  function showView(view) {
+    const isGerar = view === 'gerar';
+    document.getElementById('content').style.display = isGerar ? 'flex' : 'none';
+    document.getElementById('history-view').classList.toggle('show', !isGerar);
+    document.getElementById('nav-gerar').classList.toggle('active', isGerar);
+    document.getElementById('nav-historico').classList.toggle('active', !isGerar);
+    document.getElementById('topbar-title').textContent = isGerar ? 'Novo anúncio' : 'Histórico';
+    document.getElementById('topbar-actions').style.display = isGerar ? 'flex' : 'none';
+    if (!isGerar) renderHistory();
+    closeSidebar();
+  }
+
+  /* ── Tone ── */
+  function selectTone(el, t) {
+    document.querySelectorAll('.tone-pill').forEach(p => p.classList.remove('sel'));
+    el.classList.add('sel');
+    tone = t;
+  }
+
+  /* ── Platforms ── */
+  function togglePlatform(el) { el.classList.toggle('sel'); }
+  function getSelectedPlatforms() { return [...document.querySelectorAll('.platform-pill.sel')].map(el => el.dataset.pid); }
+
+  /* ── Character counter ── */
+  function updateCounter() {
+    const len = document.getElementById('diferenciais').value.length;
+    const el  = document.getElementById('char-counter');
+    el.textContent = `${len} / 500`;
+    el.className = 'char-counter' + (len >= 500 ? ' over' : len >= 450 ? ' warn' : '');
+  }
+
+  /* ── Error ── */
+  function showError(msg) {
+    document.getElementById('error-text').textContent = msg;
+    document.getElementById('error-msg').classList.add('show');
+  }
+  function hideError() { document.getElementById('error-msg').classList.remove('show'); }
+
+  /* ── Clear ── */
+  function clearForm() {
+    ['bairro','cidade','valor','area','quartos','suites','banheiros','vagas','diferenciais']
+      .forEach(id => document.getElementById(id).value = '');
+    document.getElementById('results').classList.remove('show');
+    document.getElementById('loading').classList.remove('show');
+    hideError();
+    updateCounter();
+    resetStep3();
+  }
+  function resetStep3() {
+    const dot = document.getElementById('s3');
+    dot.className = 'step-dot';
+    dot.textContent = '3';
+    document.getElementById('sl3').classList.remove('active');
+    document.getElementById('l2').classList.remove('done');
+  }
+
+  /* ── Copy ── */
+  function copyText(btn, text) {
+    navigator.clipboard.writeText(text).then(() => {
+      btn.classList.add('copied');
+      btn.innerHTML = '<i class="ti ti-check" style="font-size:13px"></i> Copiado';
+      setTimeout(() => {
+        btn.classList.remove('copied');
+        btn.innerHTML = '<i class="ti ti-copy" style="font-size:13px"></i> Copiar';
+      }, 2000);
+    });
+  }
+
+  function copyAll(btn, pid) {
+    const data = lastResults[pid];
+    if (!data) return;
+    const text = Object.entries(data).map(([k, v]) => `${FIELD_LABELS[k] || k}:\n${v}`).join('\n\n');
+    navigator.clipboard.writeText(text).then(() => {
+      btn.classList.add('copied');
+      btn.innerHTML = '<i class="ti ti-check" style="font-size:13px"></i> Tudo copiado';
+      setTimeout(() => {
+        btn.classList.remove('copied');
+        btn.innerHTML = '<i class="ti ti-copy" style="font-size:13px"></i> Copiar tudo';
+      }, 2000);
+    });
+  }
+
+  /* ── History ── */
+  const HISTORY_KEY = 'poplar_history';
+  const MAX_HISTORY = 20;
+
+  function getHistory() {
+    try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); } catch { return []; }
+  }
+
+  function saveToHistory(formData, platforms, result) {
+    const hist = getHistory();
+    hist.unshift({ id: Date.now(), ts: new Date().toISOString(), formData, platforms, result });
+    if (hist.length > MAX_HISTORY) hist.pop();
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(hist));
+  }
+
+  function deleteEntry(id) {
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(getHistory().filter(e => e.id !== id)));
+    renderHistory();
+  }
+
+  function clearHistory() {
+    if (!confirm('Apagar todo o histórico?')) return;
+    localStorage.removeItem(HISTORY_KEY);
+    renderHistory();
+  }
+
+  function formatDate(iso) {
+    const d = new Date(iso);
+    return d.toLocaleDateString('pt-BR', { day:'2-digit', month:'short', year:'numeric' })
+      + ' às ' + d.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
+  }
+
+  function toggleHistoryCard(id) {
+    const body = document.getElementById('hbody-' + id);
+    const btn  = document.getElementById('hbtn-' + id);
+    const open = body.classList.toggle('open');
+    btn.innerHTML = open
+      ? '<i class="ti ti-chevron-up"></i> Fechar'
+      : '<i class="ti ti-chevron-down"></i> Ver';
+  }
+
+  function renderHistory() {
+    const hist      = getHistory();
+    const container = document.getElementById('history-list');
+    const clearBtn  = document.getElementById('clear-history-btn');
+    clearBtn.style.display = hist.length ? 'flex' : 'none';
+
+    if (!hist.length) {
+      container.innerHTML = `<div class="history-empty"><i class="ti ti-clock-off"></i>Nenhuma geração salva ainda.<br>Gere seu primeiro anúncio!</div>`;
+      return;
+    }
+
+    container.innerHTML = hist.map(entry => {
+      const f     = entry.formData;
+      const tags  = entry.platforms.map(p => `<span class="history-platform-tag">${PLATFORM_LABELS[p] || p}</span>`).join('');
+      const body  = entry.platforms.map(pid => {
+        if (!entry.result[pid]) return '';
+        const fields = Object.entries(entry.result[pid]).map(([k, v]) => `
+          <div class="history-field">
+            <div class="history-field-label">${FIELD_LABELS[k] || k}</div>
+            <div class="history-field-text">${escHtml(v)}</div>
+          </div>`).join('');
+        return `<div class="history-platform-section">
+          <div class="history-platform-label"><i class="ti ${PLATFORM_ICONS[pid] || 'ti-circle'}"></i> ${PLATFORM_LABELS[pid] || pid}</div>
+          ${fields}
+        </div>`;
+      }).join('');
+
+      return `
+        <div class="history-card">
+          <div class="history-card-header">
+            <div class="history-card-info">
+              <div class="history-card-title">${escHtml(f.tipo)} • ${escHtml(f.bairro)}, ${escHtml(f.cidade)}</div>
+              <div class="history-card-meta">${escHtml(f.finalidade)} · R$ ${escHtml(f.valor)} · ${escHtml(f.area)}m² · ${formatDate(entry.ts)}</div>
+              <div class="history-card-platforms">${tags}</div>
+            </div>
+            <div class="history-card-actions">
+              <button class="btn-sm" id="hbtn-${entry.id}" onclick="toggleHistoryCard(${entry.id})"><i class="ti ti-chevron-down"></i> Ver</button>
+              <button class="btn-sm-danger" onclick="deleteEntry(${entry.id})"><i class="ti ti-trash"></i></button>
+            </div>
+          </div>
+          <div class="history-body" id="hbody-${entry.id}">${body}</div>
+        </div>`;
+    }).join('');
+  }
+
+  function escHtml(str) {
+    return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  /* ── Prompt ── */
+  function buildPrompt(f, platforms) {
+    return `Você é um especialista em copywriting imobiliário brasileiro. Gere anúncios otimizados para cada plataforma com base nos dados abaixo.\n\nDADOS DO IMÓVEL:\n- Tipo: ${f.tipo}\n- Finalidade: ${f.finalidade}\n- Localização: ${f.bairro}, ${f.cidade}\n- Valor: R$ ${f.valor}\n- Área: ${f.area}m²\n- Quartos: ${f.quartos} | Suítes: ${f.suites} | Banheiros: ${f.banheiros}\n- Vagas: ${f.vagas}\n- Diferenciais: ${f.diferenciais}\n- Tom de voz: ${f.tom}\n\nPLATAFORMAS: ${platforms.join(', ')}\n\nREGRAS:\n- Linguagem natural e persuasiva\n- Adapte ao tom de voz\n- Não invente informações\n- Redes sociais: emojis estratégicos\n- WhatsApp: breve e com urgência sutil\n- TikTok: roteiro de 15-30s com gancho, desenvolvimento e CTA\n\nRetorne APENAS JSON válido, sem markdown:\n{"zap":{"titulo":"...","descricao":"..."},"olx":{"titulo":"...","descricao":"..."},"instagram":{"legenda":"...","hashtags":"..."},"facebook":{"feed":"...","grupo":"..."},"whatsapp":{"mensagem":"..."},"tiktok":{"roteiro":"...","legenda":"...","hashtags":"..."}}\nInclua apenas as plataformas solicitadas.`;
+  }
+
+  /* ── Render results ── */
+  function renderResults(data, platforms) {
+    lastResults = data;
+    const tabsEl   = document.getElementById('result-tabs');
+    const panelsEl = document.getElementById('result-panels');
+    tabsEl.innerHTML = ''; panelsEl.innerHTML = '';
+
+    platforms.forEach((pid, i) => {
+      if (!data[pid]) return;
+
+      // Tab
+      const tab = document.createElement('button');
+      tab.className = 'result-tab' + (i === 0 ? ' active' : '');
+      tab.innerHTML = `<i class="ti ${PLATFORM_ICONS[pid]}"></i> ${PLATFORM_LABELS[pid]}`;
+      tab.onclick = () => {
+        document.querySelectorAll('.result-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.result-panel').forEach(p => p.classList.remove('show'));
+        tab.classList.add('active');
+        document.getElementById('panel-' + pid).classList.add('show');
+      };
+      tabsEl.appendChild(tab);
+
+      // Panel
+      const panel = document.createElement('div');
+      panel.className = 'result-panel' + (i === 0 ? ' show' : '');
+      panel.id = 'panel-' + pid;
+
+      // Copy-all button
+      const actionsRow = document.createElement('div');
+      actionsRow.className = 'result-panel-actions';
+      const copyAllBtn = document.createElement('button');
+      copyAllBtn.className = 'copy-all-btn';
+      copyAllBtn.innerHTML = '<i class="ti ti-copy" style="font-size:13px"></i> Copiar tudo';
+      copyAllBtn.onclick = () => copyAll(copyAllBtn, pid);
+      actionsRow.appendChild(copyAllBtn);
+      panel.appendChild(actionsRow);
+
+      // Fields
+      Object.entries(data[pid]).forEach(([key, val]) => {
+        const fieldDiv = document.createElement('div');
+        fieldDiv.className = 'result-field';
+
+        const header = document.createElement('div');
+        header.className = 'result-field-header';
+
+        const labelSpan = document.createElement('span');
+        labelSpan.className = 'result-field-label';
+        labelSpan.textContent = FIELD_LABELS[key] || key;
+
+        const copyBtn = document.createElement('button');
+        copyBtn.className = 'copy-btn';
+        copyBtn.innerHTML = '<i class="ti ti-copy" style="font-size:13px"></i> Copiar';
+        copyBtn.onclick = () => copyText(copyBtn, val);
+
+        header.appendChild(labelSpan);
+        header.appendChild(copyBtn);
+
+        const textDiv = document.createElement('div');
+        textDiv.className = 'result-text';
+        textDiv.textContent = val;
+
+        fieldDiv.appendChild(header);
+        fieldDiv.appendChild(textDiv);
+        panel.appendChild(fieldDiv);
+      });
+
+      panelsEl.appendChild(panel);
+    });
+
+    document.getElementById('result-count').textContent = `${platforms.length} plataforma${platforms.length > 1 ? 's' : ''}`;
+  }
+
+  /* ── Generate ── */
+  async function generate() {
+    hideError();
+    const bairro    = document.getElementById('bairro').value.trim();
+    const cidade    = document.getElementById('cidade').value.trim();
+    const valor     = document.getElementById('valor').value.trim();
+    const area      = document.getElementById('area').value.trim();
+    const platforms = getSelectedPlatforms();
+
+    if (!bairro || !cidade || !valor || !area) { showError('Preencha pelo menos: bairro, cidade, valor e área.'); return; }
+    if (!platforms.length) { showError('Selecione pelo menos uma plataforma.'); return; }
+
+    lastFormData = {
+      tipo:        document.getElementById('tipo').value,
+      finalidade:  document.getElementById('finalidade').value,
+      bairro, cidade, valor, area,
+      quartos:     document.getElementById('quartos').value  || '—',
+      suites:      document.getElementById('suites').value   || '—',
+      banheiros:   document.getElementById('banheiros').value|| '—',
+      vagas:       document.getElementById('vagas').value    || '—',
+      diferenciais:document.getElementById('diferenciais').value || 'Não informado',
+      tom: tone
+    };
+
+    document.getElementById('results').classList.remove('show');
+    document.getElementById('loading').classList.add('show');
+    document.getElementById('gen-btn').disabled = true;
+    document.getElementById('regen-btn').disabled = true;
+
+    const dot = document.getElementById('s3');
+    dot.className = 'step-dot active';
+    dot.textContent = '3';
+    document.getElementById('sl3').classList.add('active');
+    document.getElementById('l2').classList.add('done');
+
+    try {
+      const res  = await fetch('/api/gerar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: buildPrompt(lastFormData, platforms) })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || `Erro ${res.status}`);
+
+      const parsed = JSON.parse(data.text.replace(/```json|```/g, '').trim());
+      renderResults(parsed, platforms);
+      saveToHistory(lastFormData, platforms, parsed);
+
+      document.getElementById('results').classList.add('show');
+      dot.className = 'step-dot done';
+      dot.innerHTML = '<i class="ti ti-check" style="font-size:11px"></i>';
+
+    } catch (e) {
+      const isNetwork = e.message === 'Failed to fetch' || e.message === 'NetworkError when attempting to fetch resource.';
+      showError(isNetwork
+        ? 'Sem conexão. Verifique sua internet e tente novamente.'
+        : `Erro: ${e.message}`
+      );
+      resetStep3();
+    } finally {
+      document.getElementById('loading').classList.remove('show');
+      document.getElementById('gen-btn').disabled = false;
+      document.getElementById('regen-btn').disabled = false;
+    }
+  }
+</script>
+</body>
+</html>

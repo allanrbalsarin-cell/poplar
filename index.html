@@ -117,53 +117,169 @@ const STATUS_COLOR = {
 };
 function sc(s) { return STATUS_COLOR[s] || "gray"; }
 
-// ─── LOGIN ────────────────────────────────────────────────────────────────────
+// ─── LOGIN / CADASTRO ─────────────────────────────────────────────────────────
 
 function Login({ onLogin }) {
+  const [tela, setTela] = useState("login"); // "login" | "cadastro" | "sucesso"
+
+  // Login
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
-  const [err, setErr] = useState("");
+  const [errLogin, setErrLogin] = useState("");
 
-  function handle(e) {
+  // Cadastro
+  const empty = { nome:"", email:"", telefone:"", creci:"", cidade:"São Paulo", senha:"", senha2:"", cargo:"Corretor" };
+  const [reg, setReg] = useState(empty);
+  const [errReg, setErrReg] = useState({});
+
+  function handleLogin(e) {
     e.preventDefault();
-    if (!email || !senha) { setErr("Preencha todos os campos."); return; }
-    if (email === "admin@poplar.com.br" && senha === "123456") {
-      onLogin({ nome:"Allan Sarin", email, avatar:"AS", cargo:"Corretor Sênior" });
+    if (!email || !senha) { setErrLogin("Preencha e-mail e senha."); return; }
+    // Verifica conta salva localmente
+    const saved = JSON.parse(localStorage.getItem("poplar_users")||"[]");
+    const user = saved.find(u=>u.email===email && u.senha===senha);
+    if (user) {
+      onLogin({ nome:user.nome, email:user.email, avatar:user.nome.split(" ").slice(0,2).map(w=>w[0]).join("").toUpperCase(), cargo:user.cargo });
     } else {
-      setErr("Credenciais inválidas. Use admin@poplar.com.br / 123456");
+      setErrLogin("E-mail ou senha incorretos.");
     }
+  }
+
+  function handleCadastro(e) {
+    e.preventDefault();
+    const errs = {};
+    if (!reg.nome.trim()) errs.nome = "Obrigatório";
+    if (!reg.email.trim() || !reg.email.includes("@")) errs.email = "E-mail inválido";
+    if (!reg.telefone.trim()) errs.telefone = "Obrigatório";
+    if (!reg.senha || reg.senha.length < 6) errs.senha = "Mínimo 6 caracteres";
+    if (reg.senha !== reg.senha2) errs.senha2 = "As senhas não coincidem";
+    if (Object.keys(errs).length) { setErrReg(errs); return; }
+
+    const saved = JSON.parse(localStorage.getItem("poplar_users")||"[]");
+    if (saved.find(u=>u.email===reg.email)) { setErrReg({email:"E-mail já cadastrado"}); return; }
+    localStorage.setItem("poplar_users", JSON.stringify([...saved, reg]));
+    setTela("sucesso");
+  }
+
+  function Field({ label, k, type="text", placeholder="" }) {
+    return (
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+        <input type={type} value={reg[k]} onChange={e=>{ setReg({...reg,[k]:e.target.value}); setErrReg({...errReg,[k]:""}); }}
+          placeholder={placeholder}
+          className={`w-full border rounded-lg px-4 py-2.5 text-sm ${errReg[k]?"border-red-400 bg-red-50":"border-gray-300"}`} />
+        {errReg[k] && <p className="text-red-500 text-xs mt-1">{errReg[k]}</p>}
+      </div>
+    );
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-900 via-emerald-800 to-teal-900 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
-        <div className="text-center mb-8">
+
+        {/* Logo */}
+        <div className="text-center mb-7">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-emerald-600 rounded-2xl mb-4">
             <span className="text-white text-3xl font-bold">P</span>
           </div>
           <h1 className="text-2xl font-bold text-gray-900">PopLar CRM</h1>
           <p className="text-gray-400 text-sm mt-1">Gestão Imobiliária Inteligente</p>
         </div>
-        <form onSubmit={handle} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">E-mail</label>
-            <input type="email" value={email} onChange={e=>setEmail(e.target.value)}
-              placeholder="admin@poplar.com.br"
-              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm" />
+
+        {/* TABS */}
+        {tela !== "sucesso" && (
+          <div className="flex rounded-xl bg-gray-100 p-1 mb-6">
+            <button onClick={()=>setTela("login")}
+              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${tela==="login"?"bg-white shadow text-gray-900":"text-gray-500 hover:text-gray-700"}`}>
+              Entrar
+            </button>
+            <button onClick={()=>setTela("cadastro")}
+              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${tela==="cadastro"?"bg-white shadow text-gray-900":"text-gray-500 hover:text-gray-700"}`}>
+              Criar conta
+            </button>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Senha</label>
-            <input type="password" value={senha} onChange={e=>setSenha(e.target.value)}
-              placeholder="••••••"
-              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm" />
+        )}
+
+        {/* LOGIN */}
+        {tela === "login" && (
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">E-mail</label>
+              <input type="email" value={email} onChange={e=>{ setEmail(e.target.value); setErrLogin(""); }}
+                placeholder="seu@email.com"
+                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Senha</label>
+              <input type="password" value={senha} onChange={e=>{ setSenha(e.target.value); setErrLogin(""); }}
+                placeholder="••••••"
+                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm" />
+            </div>
+            {errLogin && <p className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg px-3 py-2">{errLogin}</p>}
+            <button type="submit"
+              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-lg transition-colors">
+              Entrar
+            </button>
+            <p className="text-center text-gray-400 text-xs pt-2">
+              Ainda não tem conta?{" "}
+              <button type="button" onClick={()=>setTela("cadastro")} className="text-emerald-600 hover:underline font-medium">
+                Cadastre-se gratuitamente
+              </button>
+            </p>
+          </form>
+        )}
+
+        {/* CADASTRO */}
+        {tela === "cadastro" && (
+          <form onSubmit={handleCadastro} className="space-y-3">
+            <Field label="Nome completo" k="nome" placeholder="João Silva" />
+            <Field label="E-mail profissional" k="email" type="email" placeholder="joao@imobiliaria.com.br" />
+            <Field label="Telefone / WhatsApp" k="telefone" placeholder="(11) 99999-0000" />
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="CRECI" k="creci" placeholder="Ex: 12345-F" />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Cargo</label>
+                <select value={reg.cargo} onChange={e=>setReg({...reg,cargo:e.target.value})}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm">
+                  {["Corretor","Corretor Sênior","Gerente","Diretor","Proprietário"].map(c=><option key={c}>{c}</option>)}
+                </select>
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Cidade</label>
+              <select value={reg.cidade} onChange={e=>setReg({...reg,cidade:e.target.value})}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm">
+                {CIDADES.map(c=><option key={c}>{c}</option>)}
+              </select>
+            </div>
+            <Field label="Senha" k="senha" type="password" placeholder="Mínimo 6 caracteres" />
+            <Field label="Confirmar senha" k="senha2" type="password" placeholder="Repita a senha" />
+            <button type="submit"
+              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-lg transition-colors mt-2">
+              Criar minha conta
+            </button>
+            <p className="text-center text-gray-400 text-xs pt-1">
+              Já tem conta?{" "}
+              <button type="button" onClick={()=>setTela("login")} className="text-emerald-600 hover:underline font-medium">
+                Fazer login
+              </button>
+            </p>
+          </form>
+        )}
+
+        {/* SUCESSO */}
+        {tela === "sucesso" && (
+          <div className="text-center py-4">
+            <div className="text-5xl mb-4">🎉</div>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">Conta criada com sucesso!</h2>
+            <p className="text-gray-500 text-sm mb-6">Bem-vindo ao PopLar CRM, <strong>{reg.nome.split(" ")[0]}</strong>. Agora faça login para começar.</p>
+            <button onClick={()=>{ setEmail(reg.email); setSenha(reg.senha); setTela("login"); }}
+              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-lg transition-colors">
+              Fazer login agora
+            </button>
           </div>
-          {err && <p className="text-red-600 text-sm">{err}</p>}
-          <button type="submit"
-            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-lg transition-colors">
-            Entrar
-          </button>
-        </form>
-        <p className="text-center text-gray-400 text-xs mt-6">admin@poplar.com.br · senha: 123456</p>
+        )}
+
       </div>
     </div>
   );

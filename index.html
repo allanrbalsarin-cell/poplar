@@ -762,10 +762,16 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt: buildPrompt(lastFormData, platforms) })
       });
-      const data = await res.json();
+
+      const raw = await res.text();
+      let data;
+      try { data = JSON.parse(raw); } catch { throw new Error(`Resposta inesperada do servidor (${res.status})`); }
       if (!res.ok) throw new Error(data.error || `Erro ${res.status}`);
 
-      const parsed = JSON.parse(data.text.replace(/```json|```/g, '').trim());
+      const text = data.text || '';
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) throw new Error('A IA não retornou um formato válido. Tente novamente.');
+      const parsed = JSON.parse(jsonMatch[0]);
       renderResults(parsed, platforms);
       saveToHistory(lastFormData, platforms, parsed);
 

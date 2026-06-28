@@ -115,14 +115,14 @@ insert into contatos (nome, tipo, email, telefone, cidade, tags) values
 ('Luiz Corretor',    'Parceiro',    'luiz.c@email.com',   '(11) 91098-7654', 'São Paulo',     ARRAY['Parceiro']);
 
 insert into imoveis (titulo, tipo, cidade, bairro, valor, area, quartos, banheiros, vagas, status, proprietario, destaque) values
-('Apartamento 3 quartos – Moema',    'Apartamento','São Paulo',     'Moema',          'R$ 850.000',   '95m²', 3,4,2,2, 'Disponível','João Proprietário', true),
-('Casa 4 quartos – Morumbi',         'Casa',       'São Paulo',     'Morumbi',        'R$ 1.200.000','220m²',4,3,3, 'Disponível','Maria Proprietária',true),
-('Studio – Pinheiros',               'Apartamento','São Paulo',     'Pinheiros',      'R$ 320.000',  '38m²', 1,1,1, 'Reservado', 'João Proprietário', false),
-('Apartamento 2 quartos – Jardins',  'Apartamento','São Paulo',     'Jardins',        'R$ 650.000',  '72m²', 2,2,1, 'Disponível','Maria Proprietária',false),
-('Cobertura – Itaim Bibi',           'Cobertura',  'São Paulo',     'Itaim Bibi',     'R$ 2.100.000','310m²',4,4,4, 'Vendido',   'João Proprietário', false),
-('Casa 3 quartos – Barra da Tijuca', 'Casa',       'Rio de Janeiro','Barra da Tijuca','R$ 980.000',  '180m²',3,3,2, 'Disponível','Maria Proprietária',true),
-('Terreno – Alphaville',             'Terreno',    'São Paulo',     'Alphaville',     'R$ 450.000',  '500m²',0,0,0, 'Disponível','João Proprietário', false),
-('Apto 1 quarto – Vila Madalena',    'Apartamento','São Paulo',     'Vila Madalena',  'R$ 280.000',  '45m²', 1,1,1, 'Disponível','Maria Proprietária',false);
+('Apartamento 3 quartos – Moema',    'Apartamento','São Paulo',     'Moema',          'R$ 850.000',   '95m²',  3, 2, 2, 'Disponível', 'João Proprietário',  true),
+('Casa 4 quartos – Morumbi',         'Casa',       'São Paulo',     'Morumbi',        'R$ 1.200.000', '220m²', 4, 3, 3, 'Disponível', 'Maria Proprietária', true),
+('Studio – Pinheiros',               'Apartamento','São Paulo',     'Pinheiros',      'R$ 320.000',   '38m²',  1, 1, 1, 'Reservado',  'João Proprietário',  false),
+('Apartamento 2 quartos – Jardins',  'Apartamento','São Paulo',     'Jardins',        'R$ 650.000',   '72m²',  2, 2, 1, 'Disponível', 'Maria Proprietária', false),
+('Cobertura – Itaim Bibi',           'Cobertura',  'São Paulo',     'Itaim Bibi',     'R$ 2.100.000', '310m²', 4, 4, 4, 'Vendido',    'João Proprietário',  false),
+('Casa 3 quartos – Barra da Tijuca', 'Casa',       'Rio de Janeiro','Barra da Tijuca','R$ 980.000',   '180m²', 3, 3, 2, 'Disponível', 'Maria Proprietária', true),
+('Terreno – Alphaville',             'Terreno',    'São Paulo',     'Alphaville',     'R$ 450.000',   '500m²', 0, 0, 0, 'Disponível', 'João Proprietário',  false),
+('Apto 1 quarto – Vila Madalena',    'Apartamento','São Paulo',     'Vila Madalena',  'R$ 280.000',   '45m²',  1, 1, 1, 'Disponível', 'Maria Proprietária', false);
 
 insert into agenda (titulo, tipo, data, hora, local, contato, imovel, status, notas) values
 ('Visita – Carlos Mendes',     'Visita',    '2026-06-28','10:00','Rua das Flores, 123 – Moema',   'Carlos Mendes',    'Apto 3 quartos – Moema',  'Confirmado','Levar planta baixa'),

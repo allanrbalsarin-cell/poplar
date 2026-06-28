@@ -188,7 +188,11 @@ function Sidebar({ view, setView, user, naoLidas, col, setCol }) {
       <div className="flex items-center gap-3 px-4 py-4 border-b border-emerald-800">
         <div className="w-9 h-9 bg-emerald-500 rounded-xl flex items-center justify-center flex-shrink-0 font-bold text-lg">P</div>
         {!col && <span className="font-bold text-lg tracking-tight">PopLar CRM</span>}
-        <button onClick={()=>setCol(!col)} className="ml-auto text-emerald-400 hover:text-white text-xs px-1">{col?"▶":"◀"}</button>
+        <button onClick={()=>setCol(!col)}
+          className="ml-auto flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-800 hover:bg-emerald-600 text-emerald-300 hover:text-white transition-colors flex-shrink-0"
+          title={col?"Expandir menu":"Recolher menu"}>
+          {col?"▶":"◀"}
+        </button>
       </div>
       <nav className="flex-1 py-3 px-2 space-y-0.5">
         {NAV.map(n => (

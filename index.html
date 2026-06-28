@@ -8,6 +8,7 @@
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <style>
     * { box-sizing: border-box; }
@@ -127,17 +128,37 @@ const STATUS_COLOR = {
 };
 function sc(s) { return STATUS_COLOR[s] || "gray"; }
 
+// ─── LOGO SVG ─────────────────────────────────────────────────────────────────
+
+function LogoIcon({ size=48 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      {/* Building */}
+      <rect x="8" y="20" width="22" height="22" rx="2" fill="#059669"/>
+      <rect x="12" y="24" width="5" height="5" rx="1" fill="white" fillOpacity="0.9"/>
+      <rect x="21" y="24" width="5" height="5" rx="1" fill="white" fillOpacity="0.9"/>
+      <rect x="12" y="33" width="5" height="5" rx="1" fill="white" fillOpacity="0.9"/>
+      <rect x="21" y="33" width="5" height="5" rx="1" fill="white" fillOpacity="0.9"/>
+      {/* Roof */}
+      <path d="M5 22L19 10L33 22" stroke="#047857" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+      {/* AI sparkle top-right */}
+      <circle cx="38" cy="10" r="7" fill="#34d399"/>
+      <path d="M38 6.5V13.5M34.5 10H41.5" stroke="white" strokeWidth="1.8" strokeLinecap="round"/>
+      <path d="M35.5 7.5L40.5 12.5M40.5 7.5L35.5 12.5" stroke="white" strokeWidth="1.2" strokeLinecap="round" strokeOpacity="0.6"/>
+      {/* Connection dot */}
+      <circle cx="30" cy="18" r="2" fill="#34d399"/>
+      <line x1="30" y1="16" x2="34" y2="13" stroke="#34d399" strokeWidth="1.5" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
 // ─── LOGIN / CADASTRO ─────────────────────────────────────────────────────────
 
 function Login({ onLogin }) {
-  const [tela, setTela] = useState("login"); // "login" | "cadastro" | "sucesso"
-
-  // Login
+  const [tela, setTela] = useState("login");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [errLogin, setErrLogin] = useState("");
-
-  // Cadastro
   const empty = { nome:"", email:"", telefone:"", creci:"", cidade:"São Paulo", senha:"", senha2:"", cargo:"Corretor" };
   const [reg, setReg] = useState(empty);
   const [errReg, setErrReg] = useState({});
@@ -145,18 +166,13 @@ function Login({ onLogin }) {
   function handleLogin(e) {
     e.preventDefault();
     if (!email || !senha) { setErrLogin("Preencha e-mail e senha."); return; }
-    // Verifica conta salva localmente
     if (email === "admin@poplar.com.br" && senha === "Poplar@2026") {
-      onLogin({ nome:"Administrador", email, avatar:"AD", cargo:"Administrador" });
-      return;
+      onLogin({ nome:"Administrador", email, avatar:"AD", cargo:"Administrador" }); return;
     }
     const saved = JSON.parse(localStorage.getItem("poplar_users")||"[]");
     const user = saved.find(u=>u.email===email && u.senha===senha);
-    if (user) {
-      onLogin({ nome:user.nome, email:user.email, avatar:user.nome.split(" ").slice(0,2).map(w=>w[0]).join("").toUpperCase(), cargo:user.cargo });
-    } else {
-      setErrLogin("E-mail ou senha incorretos.");
-    }
+    if (user) onLogin({ nome:user.nome, email:user.email, avatar:user.nome.split(" ").slice(0,2).map(w=>w[0]).join("").toUpperCase(), cargo:user.cargo });
+    else setErrLogin("E-mail ou senha incorretos.");
   }
 
   function handleCadastro(e) {
@@ -168,7 +184,6 @@ function Login({ onLogin }) {
     if (!reg.senha || reg.senha.length < 6) errs.senha = "Mínimo 6 caracteres";
     if (reg.senha !== reg.senha2) errs.senha2 = "As senhas não coincidem";
     if (Object.keys(errs).length) { setErrReg(errs); return; }
-
     const saved = JSON.parse(localStorage.getItem("poplar_users")||"[]");
     if (saved.find(u=>u.email===reg.email)) { setErrReg({email:"E-mail já cadastrado"}); return; }
     localStorage.setItem("poplar_users", JSON.stringify([...saved, reg]));
@@ -178,122 +193,188 @@ function Login({ onLogin }) {
   function Field({ label, k, type="text", placeholder="" }) {
     return (
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+        <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">{label}</label>
         <input type={type} value={reg[k]} onChange={e=>{ setReg({...reg,[k]:e.target.value}); setErrReg({...errReg,[k]:""}); }}
           placeholder={placeholder}
-          className={`w-full border rounded-lg px-4 py-2.5 text-sm ${errReg[k]?"border-red-400 bg-red-50":"border-gray-300"}`} />
+          className={`w-full border rounded-xl px-4 py-2.5 text-sm bg-gray-50 focus:bg-white transition-colors ${errReg[k]?"border-red-400":"border-gray-200"}`} />
         {errReg[k] && <p className="text-red-500 text-xs mt-1">{errReg[k]}</p>}
       </div>
     );
   }
 
+  const features = [
+    { icon:"🏠", text:"Gestão completa de imóveis e leads" },
+    { icon:"🤖", text:"Anúncios gerados por Inteligência Artificial" },
+    { icon:"📊", text:"Dashboard com métricas em tempo real" },
+    { icon:"📅", text:"Agenda e histórico de atendimentos" },
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-900 via-emerald-800 to-teal-900 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
+    <div className="min-h-screen flex" style={{background:"#0a0f1e"}}>
 
-        {/* Logo */}
-        <div className="text-center mb-7">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-emerald-600 rounded-2xl mb-4">
-            <span className="text-white text-3xl font-bold">P</span>
+      {/* PAINEL ESQUERDO */}
+      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12"
+        style={{background:"linear-gradient(135deg,#064e3b 0%,#065f46 40%,#0d4f3c 70%,#0a3d2e 100%)"}}>
+        <div>
+          <div className="flex items-center gap-3 mb-16">
+            <LogoIcon size={44} />
+            <div>
+              <h1 style={{fontFamily:"'Space Grotesk',sans-serif",fontWeight:700,letterSpacing:"-0.5px"}} className="text-white text-xl">PopLar CRM</h1>
+              <p className="text-emerald-400 text-xs">Powered by AI</p>
+            </div>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">PopLar CRM</h1>
-          <p className="text-gray-400 text-sm mt-1">Gestão Imobiliária Inteligente</p>
+          <h2 className="text-white text-4xl font-bold leading-tight mb-4">
+            Venda mais.<br/>
+            <span style={{color:"#34d399"}}>Trabalhe menos.</span>
+          </h2>
+          <p className="text-emerald-200 text-base leading-relaxed mb-10">
+            O CRM imobiliário com IA que transforma leads em negócios fechados automaticamente.
+          </p>
+          <div className="space-y-4">
+            {features.map((f,i) => (
+              <div key={i} className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
+                  style={{background:"rgba(52,211,153,0.15)"}}>
+                  {f.icon}
+                </div>
+                <p className="text-emerald-100 text-sm">{f.text}</p>
+              </div>
+            ))}
+          </div>
         </div>
+        <div className="flex items-center gap-2 mt-8">
+          <div className="w-2 h-2 rounded-full bg-emerald-400"></div>
+          <p className="text-emerald-400 text-xs">Sistema seguro com banco de dados em tempo real</p>
+        </div>
+      </div>
 
-        {/* TABS */}
-        {tela !== "sucesso" && (
-          <div className="flex rounded-xl bg-gray-100 p-1 mb-6">
-            <button onClick={()=>setTela("login")}
-              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${tela==="login"?"bg-white shadow text-gray-900":"text-gray-500 hover:text-gray-700"}`}>
-              Entrar
-            </button>
-            <button onClick={()=>setTela("cadastro")}
-              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${tela==="cadastro"?"bg-white shadow text-gray-900":"text-gray-500 hover:text-gray-700"}`}>
-              Criar conta
-            </button>
+      {/* PAINEL DIREITO */}
+      <div className="flex-1 flex items-center justify-center p-6 lg:p-12" style={{background:"#f8fafc"}}>
+        <div className="w-full max-w-md">
+
+          {/* Logo mobile */}
+          <div className="lg:hidden flex items-center gap-3 mb-8 justify-center">
+            <LogoIcon size={40} />
+            <div>
+              <h1 style={{fontFamily:"'Space Grotesk',sans-serif",fontWeight:700,letterSpacing:"-0.5px"}} className="text-gray-900 text-xl">PopLar CRM</h1>
+              <p className="text-emerald-600 text-xs">Powered by AI</p>
+            </div>
           </div>
-        )}
 
-        {/* LOGIN */}
-        {tela === "login" && (
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">E-mail</label>
-              <input type="email" value={email} onChange={e=>{ setEmail(e.target.value); setErrLogin(""); }}
-                placeholder="seu@email.com"
-                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Senha</label>
-              <input type="password" value={senha} onChange={e=>{ setSenha(e.target.value); setErrLogin(""); }}
-                placeholder="••••••"
-                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm" />
-            </div>
-            {errLogin && <p className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg px-3 py-2">{errLogin}</p>}
-            <button type="submit"
-              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-lg transition-colors">
-              Entrar
-            </button>
-            <p className="text-center text-gray-400 text-xs pt-2">
-              Ainda não tem conta?{" "}
-              <button type="button" onClick={()=>setTela("cadastro")} className="text-emerald-600 hover:underline font-medium">
-                Cadastre-se gratuitamente
-              </button>
-            </p>
-          </form>
-        )}
+          {tela !== "sucesso" && (
+            <>
+              <h2 className="text-2xl font-bold text-gray-900 mb-1">
+                {tela==="login" ? "Bem-vindo de volta" : "Criar sua conta"}
+              </h2>
+              <p className="text-gray-500 text-sm mb-7">
+                {tela==="login" ? "Entre para acessar seu CRM" : "Comece a usar gratuitamente hoje"}
+              </p>
+              <div className="flex rounded-xl p-1 mb-6" style={{background:"#e2e8f0"}}>
+                <button onClick={()=>setTela("login")}
+                  className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${tela==="login"?"bg-white shadow text-gray-900":"text-gray-500 hover:text-gray-700"}`}>
+                  Entrar
+                </button>
+                <button onClick={()=>setTela("cadastro")}
+                  className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${tela==="cadastro"?"bg-white shadow text-gray-900":"text-gray-500 hover:text-gray-700"}`}>
+                  Criar conta
+                </button>
+              </div>
+            </>
+          )}
 
-        {/* CADASTRO */}
-        {tela === "cadastro" && (
-          <form onSubmit={handleCadastro} className="space-y-3">
-            <Field label="Nome completo" k="nome" placeholder="João Silva" />
-            <Field label="E-mail profissional" k="email" type="email" placeholder="joao@imobiliaria.com.br" />
-            <Field label="Telefone / WhatsApp" k="telefone" placeholder="(11) 99999-0000" />
-            <div className="grid grid-cols-2 gap-3">
-              <Field label="CRECI" k="creci" placeholder="Ex: 12345-F" />
+          {/* LOGIN */}
+          {tela === "login" && (
+            <form onSubmit={handleLogin} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Cargo</label>
-                <select value={reg.cargo} onChange={e=>setReg({...reg,cargo:e.target.value})}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm">
-                  {["Corretor","Corretor Sênior","Gerente","Diretor","Proprietário"].map(c=><option key={c}>{c}</option>)}
+                <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">E-mail</label>
+                <input type="email" value={email} onChange={e=>{setEmail(e.target.value);setErrLogin("");}}
+                  placeholder="seu@email.com"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-gray-50 focus:bg-white transition-colors" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">Senha</label>
+                <input type="password" value={senha} onChange={e=>{setSenha(e.target.value);setErrLogin("");}}
+                  placeholder="••••••••"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-gray-50 focus:bg-white transition-colors" />
+              </div>
+              {errLogin && (
+                <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+                  <span className="text-red-500 text-xs">⚠</span>
+                  <p className="text-red-600 text-sm">{errLogin}</p>
+                </div>
+              )}
+              <button type="submit"
+                className="w-full text-white font-semibold py-3 rounded-xl transition-all text-sm mt-2"
+                style={{background:"linear-gradient(135deg,#059669,#047857)"}}>
+                Entrar no CRM →
+              </button>
+              <p className="text-center text-gray-400 text-xs pt-1">
+                Ainda não tem conta?{" "}
+                <button type="button" onClick={()=>setTela("cadastro")} className="text-emerald-600 hover:underline font-semibold">
+                  Cadastre-se grátis
+                </button>
+              </p>
+            </form>
+          )}
+
+          {/* CADASTRO */}
+          {tela === "cadastro" && (
+            <form onSubmit={handleCadastro} className="space-y-3">
+              <Field label="Nome completo" k="nome" placeholder="João Silva" />
+              <Field label="E-mail profissional" k="email" type="email" placeholder="joao@imobiliaria.com.br" />
+              <Field label="Telefone / WhatsApp" k="telefone" placeholder="(11) 99999-0000" />
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="CRECI" k="creci" placeholder="Ex: 12345-F" />
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">Cargo</label>
+                  <select value={reg.cargo} onChange={e=>setReg({...reg,cargo:e.target.value})}
+                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-gray-50">
+                    {["Corretor","Corretor Sênior","Gerente","Diretor","Proprietário"].map(c=><option key={c}>{c}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">Cidade</label>
+                <select value={reg.cidade} onChange={e=>setReg({...reg,cidade:e.target.value})}
+                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-gray-50">
+                  {CIDADES.map(c=><option key={c}>{c}</option>)}
                 </select>
               </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Cidade</label>
-              <select value={reg.cidade} onChange={e=>setReg({...reg,cidade:e.target.value})}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm">
-                {CIDADES.map(c=><option key={c}>{c}</option>)}
-              </select>
-            </div>
-            <Field label="Senha" k="senha" type="password" placeholder="Mínimo 6 caracteres" />
-            <Field label="Confirmar senha" k="senha2" type="password" placeholder="Repita a senha" />
-            <button type="submit"
-              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-lg transition-colors mt-2">
-              Criar minha conta
-            </button>
-            <p className="text-center text-gray-400 text-xs pt-1">
-              Já tem conta?{" "}
-              <button type="button" onClick={()=>setTela("login")} className="text-emerald-600 hover:underline font-medium">
-                Fazer login
+              <Field label="Senha" k="senha" type="password" placeholder="Mínimo 6 caracteres" />
+              <Field label="Confirmar senha" k="senha2" type="password" placeholder="Repita a senha" />
+              <button type="submit"
+                className="w-full text-white font-semibold py-3 rounded-xl transition-all text-sm mt-1"
+                style={{background:"linear-gradient(135deg,#059669,#047857)"}}>
+                Criar minha conta →
               </button>
-            </p>
-          </form>
-        )}
+              <p className="text-center text-gray-400 text-xs">
+                Já tem conta?{" "}
+                <button type="button" onClick={()=>setTela("login")} className="text-emerald-600 hover:underline font-semibold">
+                  Fazer login
+                </button>
+              </p>
+            </form>
+          )}
 
-        {/* SUCESSO */}
-        {tela === "sucesso" && (
-          <div className="text-center py-4">
-            <div className="text-5xl mb-4">🎉</div>
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Conta criada com sucesso!</h2>
-            <p className="text-gray-500 text-sm mb-6">Bem-vindo ao PopLar CRM, <strong>{reg.nome.split(" ")[0]}</strong>. Agora faça login para começar.</p>
-            <button onClick={()=>{ setEmail(reg.email); setSenha(reg.senha); setTela("login"); }}
-              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-lg transition-colors">
-              Fazer login agora
-            </button>
-          </div>
-        )}
+          {/* SUCESSO */}
+          {tela === "sucesso" && (
+            <div className="text-center py-6">
+              <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-5 text-4xl"
+                style={{background:"linear-gradient(135deg,#d1fae5,#a7f3d0)"}}>🎉</div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Conta criada!</h2>
+              <p className="text-gray-500 text-sm mb-7">
+                Bem-vindo ao PopLar CRM, <strong>{reg.nome.split(" ")[0]}</strong>.<br/>Agora faça login para começar.
+              </p>
+              <button onClick={()=>{ setEmail(reg.email); setSenha(reg.senha); setTela("login"); }}
+                className="w-full text-white font-semibold py-3 rounded-xl text-sm"
+                style={{background:"linear-gradient(135deg,#059669,#047857)"}}>
+                Entrar agora →
+              </button>
+            </div>
+          )}
 
+          <p className="text-center text-gray-300 text-xs mt-8">© 2026 PopLar CRM · Todos os direitos reservados</p>
+        </div>
       </div>
     </div>
   );
@@ -324,7 +405,7 @@ function Sidebar({ view, setView, user, naoLidas, col, setCol }) {
       ) : (
         <div className="flex items-center gap-3 px-4 py-4 border-b border-emerald-800">
           <div className="w-9 h-9 bg-emerald-500 rounded-xl flex items-center justify-center flex-shrink-0 font-bold text-lg">P</div>
-          <span className="font-bold text-lg tracking-tight">PopLar CRM</span>
+          <span style={{fontFamily:"'Space Grotesk',sans-serif",fontWeight:700,letterSpacing:"-0.4px"}} className="text-lg">PopLar CRM</span>
           <button onClick={()=>setCol(true)}
             className="ml-auto flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-800 hover:bg-emerald-600 text-emerald-300 hover:text-white transition-colors"
             title="Recolher menu">◀</button>

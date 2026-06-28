@@ -8,6 +8,7 @@
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <style>
     * { box-sizing: border-box; }
     body { margin: 0; font-family: system-ui, -apple-system, sans-serif; background: #f1f5f9; }
@@ -20,12 +21,21 @@
     .kanban-scroll { overflow-x: auto; padding-bottom: 8px; }
     .card-hover { transition: transform 0.15s, box-shadow 0.15s; }
     .card-hover:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .animate-spin { animation: spin 0.8s linear infinite; }
   </style>
 </head>
 <body>
 <div id="root"></div>
 <script type="text/babel">
 const { useState, useEffect, useRef } = React;
+
+// ─── SUPABASE ─────────────────────────────────────────────────────────────────
+const SUPABASE_URL = "COLE_AQUI_SUA_URL";
+const SUPABASE_KEY = "COLE_AQUI_SUA_CHAVE_ANON";
+const db = (SUPABASE_URL.includes("COLE_AQUI") || !window.supabase)
+  ? null
+  : window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ─── DADOS MOCKADOS ───────────────────────────────────────────────────────────
 
@@ -357,10 +367,13 @@ const TITLES = {
   anuncio:"Gerar Anúncio com IA", notificacoes:"Notificações"
 };
 
-function Topbar({ view, naoLidas, setView, onLogout }) {
+function Topbar({ view, naoLidas, setView, onLogout, dbOk }) {
   return (
     <header className="bg-white border-b border-gray-200 px-6 py-3.5 flex items-center gap-4 flex-shrink-0">
       <h1 className="text-base font-semibold text-gray-900 flex-1">{TITLES[view]}</h1>
+      <span className={`text-xs px-2 py-1 rounded-full font-medium ${dbOk?"bg-emerald-50 text-emerald-700":"bg-gray-100 text-gray-400"}`}>
+        {dbOk?"● Supabase":"● Demo"}
+      </span>
       <button onClick={()=>setView("notificacoes")} className="relative p-2 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-lg text-lg">
         🔔{naoLidas>0 && <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>}
       </button>
@@ -441,7 +454,7 @@ function DonutChart({ data }) {
   );
 }
 
-function Dashboard({ leads, imoveis }) {
+function Dashboard({ leads, imoveis, agenda, atends }) {
   const kpis = [
     { label:"Leads Ativos",        value:leads.filter(l=>l.status!=="Perdido").length, emoji:"👥", bg:"#eff6ff", border:"#bfdbfe" },
     { label:"Imóveis Disponíveis", value:imoveis.filter(i=>i.status==="Disponível").length, emoji:"🏢", bg:"#ecfdf5", border:"#a7f3d0" },
@@ -473,7 +486,7 @@ function Dashboard({ leads, imoveis }) {
         <div className="bg-white rounded-xl border border-gray-200 p-5">
           <h3 className="font-semibold text-gray-900 mb-3 text-sm">Últimos Atendimentos</h3>
           <div className="space-y-3">
-            {MOCK_ATENDIMENTOS.slice(0,4).map(a=>(
+            {(atends||[]).slice(0,4).map(a=>(
               <div key={a.id} className="flex items-start gap-3">
                 <span className="text-xl">{a.tipo==="Ligação"?"📞":a.tipo==="Email"?"📧":a.tipo==="WhatsApp"?"💬":a.tipo==="Visita"?"🏠":"👥"}</span>
                 <div>
@@ -488,7 +501,7 @@ function Dashboard({ leads, imoveis }) {
         <div className="bg-white rounded-xl border border-gray-200 p-5">
           <h3 className="font-semibold text-gray-900 mb-3 text-sm">Próximos Eventos</h3>
           <div className="space-y-3">
-            {MOCK_AGENDA.filter(e=>e.status==="Confirmado").map(e=>(
+            {(agenda||[]).filter(e=>e.status==="Confirmado").slice(0,4).map(e=>(
               <div key={e.id} className="flex items-start gap-3">
                 <span className="text-xl">{e.tipo==="Visita"?"🏠":e.tipo==="Reunião"?"👥":e.tipo==="Assinatura"?"✍️":"📋"}</span>
                 <div>
@@ -509,29 +522,38 @@ function Dashboard({ leads, imoveis }) {
 
 const COLS = ["Novo","Contato","Visita Agendada","Proposta","Fechado","Perdido"];
 
-function LeadsKanban({ leads, setLeads }) {
+function LeadsKanban({ leads, onAdd, onUpdate, onDelete }) {
   const [search, setSearch] = useState("");
   const [modal, setModal] = useState(false);
   const [editId, setEditId] = useState(null);
+  const [saving, setSaving] = useState(false);
   const empty = { nome:"", email:"", telefone:"", origem:"Site", status:"Novo", imovel:"", valor:"", notas:"" };
   const [form, setForm] = useState(empty);
 
   const fil = leads.filter(l=>
     l.nome.toLowerCase().includes(search.toLowerCase()) ||
-    l.imovel.toLowerCase().includes(search.toLowerCase())
+    (l.imovel||"").toLowerCase().includes(search.toLowerCase())
   );
   const byCol = col => fil.filter(l=>l.status===col);
 
   function openNew() { setForm(empty); setEditId(null); setModal(true); }
   function openEdit(l) { setForm({...l}); setEditId(l.id); setModal(true); }
-  function save() {
+  async function save() {
     if (!form.nome.trim()) return;
-    if (editId) setLeads(leads.map(l=>l.id===editId?{...l,...form}:l));
-    else setLeads([...leads,{...form,id:Date.now(),data:new Date().toISOString().slice(0,10)}]);
+    setSaving(true);
+    const {id, created_at, ...payload} = form;
+    if (editId) await onUpdate(editId, payload);
+    else await onAdd(payload);
+    setSaving(false);
     setModal(false);
   }
-  function del() {
-    if (editId && window.confirm("Remover este lead?")) { setLeads(leads.filter(l=>l.id!==editId)); setModal(false); }
+  async function del() {
+    if (editId && window.confirm("Remover este lead?")) {
+      setSaving(true);
+      await onDelete(editId);
+      setSaving(false);
+      setModal(false);
+    }
   }
 
   return (
@@ -607,8 +629,10 @@ function LeadsKanban({ leads, setLeads }) {
             <div className="flex gap-3 mt-5">
               <button onClick={()=>setModal(false)}
                 className="flex-1 border border-gray-300 text-gray-700 py-2 rounded-lg text-sm hover:bg-gray-50">Cancelar</button>
-              <button onClick={save}
-                className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-lg text-sm font-semibold">Salvar</button>
+              <button onClick={save} disabled={saving}
+                className="flex-1 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white py-2 rounded-lg text-sm font-semibold">
+                {saving?"Salvando...":"Salvar"}
+              </button>
             </div>
           </div>
         </div>
@@ -734,10 +758,10 @@ function Imoveis({ imoveis }) {
 
 const T_ICON = { "Visita":"🏠","Reunião":"👥","Assinatura":"✍️","Avaliação":"📋" };
 
-function Agenda() {
+function Agenda({ agenda }) {
   const hoje = new Date().toISOString().slice(0,10);
-  const futuros = MOCK_AGENDA.filter(e=>e.data>=hoje).sort((a,b)=>a.data.localeCompare(b.data)||a.hora.localeCompare(b.hora));
-  const passados = MOCK_AGENDA.filter(e=>e.data<hoje);
+  const futuros = (agenda||[]).filter(e=>e.data>=hoje).sort((a,b)=>a.data.localeCompare(b.data)||a.hora.localeCompare(b.hora));
+  const passados = (agenda||[]).filter(e=>e.data<hoje);
   return (
     <div className="p-6 fade-in space-y-6">
       <div>
@@ -789,9 +813,9 @@ function Agenda() {
 
 const AT_ICON = { "Ligação":"📞","Email":"📧","WhatsApp":"💬","Visita":"🏠","Reunião":"👥" };
 
-function Atendimentos() {
+function Atendimentos({ atendimentos }) {
   const [search, setSearch] = useState("");
-  const fil = MOCK_ATENDIMENTOS.filter(a=>
+  const fil = (atendimentos||[]).filter(a=>
     a.contato.toLowerCase().includes(search.toLowerCase()) ||
     a.resumo.toLowerCase().includes(search.toLowerCase())
   );
@@ -1000,27 +1024,86 @@ function GerarAnuncio() {
 
 // ─── APP ROOT ─────────────────────────────────────────────────────────────────
 
+function Spinner() {
+  return (
+    <div className="flex-1 flex items-center justify-center">
+      <div className="text-center">
+        <div className="w-10 h-10 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+        <p className="text-sm text-gray-500">Carregando dados...</p>
+      </div>
+    </div>
+  );
+}
+
 function App() {
-  const [user, setUser]     = useState(null);
-  const [view, setView]     = useState("dashboard");
-  const [col, setCol]       = useState(false);
-  const [leads, setLeads]   = useState(MOCK_LEADS);
-  const [contatos]          = useState(MOCK_CONTATOS);
-  const [imoveis]           = useState(MOCK_IMOVEIS);
-  const [notifs, setNotifs] = useState(MOCK_NOTIFS);
+  const [user, setUser]         = useState(null);
+  const [view, setView]         = useState("dashboard");
+  const [col, setCol]           = useState(false);
+  const [leads, setLeads]       = useState(MOCK_LEADS);
+  const [contatos, setContatos] = useState(MOCK_CONTATOS);
+  const [imoveis, setImoveis]   = useState(MOCK_IMOVEIS);
+  const [agenda, setAgenda]     = useState(MOCK_AGENDA);
+  const [atends, setAtends]     = useState(MOCK_ATENDIMENTOS);
+  const [notifs, setNotifs]     = useState(MOCK_NOTIFS);
+  const [loading, setLoading]   = useState(false);
+  const [dbOk, setDbOk]         = useState(false);
+
+  useEffect(() => { if (user) loadAll(); }, [user]);
+
+  async function loadAll() {
+    if (!db) return; // sem Supabase configurado, usa dados mock
+    setLoading(true);
+    try {
+      const [l, c, im, ag, at] = await Promise.all([
+        db.from("leads").select("*").order("created_at", {ascending:false}),
+        db.from("contatos").select("*").order("nome"),
+        db.from("imoveis").select("*").order("created_at", {ascending:false}),
+        db.from("agenda").select("*").order("data"),
+        db.from("atendimentos").select("*").order("data", {ascending:false}),
+      ]);
+      if (l.data)  setLeads(l.data);
+      if (c.data)  setContatos(c.data);
+      if (im.data) setImoveis(im.data);
+      if (ag.data) setAgenda(ag.data);
+      if (at.data) setAtends(at.data);
+      setDbOk(true);
+    } catch(e) { console.error("Supabase:", e); }
+    finally { setLoading(false); }
+  }
+
+  // CRUD Leads via Supabase
+  async function addLead(form) {
+    if (db) {
+      const {data,error} = await db.from("leads").insert(form).select();
+      if (data) { setLeads(prev=>[data[0],...prev]); return; }
+    }
+    setLeads(prev=>[{...form,id:Date.now(),data:new Date().toISOString().slice(0,10)},...prev]);
+  }
+  async function updateLead(id, form) {
+    if (db) {
+      const {data} = await db.from("leads").update(form).eq("id",id).select();
+      if (data) { setLeads(prev=>prev.map(l=>l.id===id?data[0]:l)); return; }
+    }
+    setLeads(prev=>prev.map(l=>l.id===id?{...l,...form}:l));
+  }
+  async function deleteLead(id) {
+    if (db) await db.from("leads").delete().eq("id",id);
+    setLeads(prev=>prev.filter(l=>l.id!==id));
+  }
 
   const naoLidas = notifs.filter(n=>!n.lida).length;
 
   if (!user) return <Login onLogin={setUser} />;
 
   function renderView() {
+    if (loading) return <Spinner />;
     switch(view) {
-      case "dashboard":    return <Dashboard leads={leads} imoveis={imoveis} />;
-      case "leads":        return <LeadsKanban leads={leads} setLeads={setLeads} />;
+      case "dashboard":    return <Dashboard leads={leads} imoveis={imoveis} agenda={agenda} atends={atends} />;
+      case "leads":        return <LeadsKanban leads={leads} onAdd={addLead} onUpdate={updateLead} onDelete={deleteLead} />;
       case "contatos":     return <Contatos contatos={contatos} />;
       case "imoveis":      return <Imoveis imoveis={imoveis} />;
-      case "agenda":       return <Agenda />;
-      case "atendimentos": return <Atendimentos />;
+      case "agenda":       return <Agenda agenda={agenda} />;
+      case "atendimentos": return <Atendimentos atendimentos={atends} />;
       case "anuncio":      return <GerarAnuncio />;
       case "notificacoes": return <Notificacoes notifs={notifs} setNotifs={setNotifs} />;
       default: return null;
@@ -1031,7 +1114,7 @@ function App() {
     <div className="flex h-screen overflow-hidden bg-gray-50">
       <Sidebar view={view} setView={setView} user={user} naoLidas={naoLidas} col={col} setCol={setCol} />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <Topbar view={view} naoLidas={naoLidas} setView={setView} onLogout={()=>setUser(null)} />
+        <Topbar view={view} naoLidas={naoLidas} setView={setView} onLogout={()=>setUser(null)} dbOk={dbOk} />
         <main className="flex-1 overflow-y-auto">{renderView()}</main>
       </div>
     </div>

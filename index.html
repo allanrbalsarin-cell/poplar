@@ -3,795 +3,883 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PopLar — Anúncios de imóveis com IA</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
+  <title>PopLar CRM</title>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/recharts@2.12.7/umd/Recharts.js"></script>
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --qa-blue: #1F4EB5;
-      --qa-blue-dark: #163A8A;
-      --qa-blue-light: #E8EFFE;
-      --qa-gray-1: #F7F5F2;
-      --qa-gray-2: #EEEBE5;
-      --qa-gray-3: #D4D0C8;
-      --qa-gray-4: #8E8980;
-      --qa-gray-5: #4A4742;
-      --qa-black: #111111;
-      --qa-white: #FFFFFF;
-      --qa-red: #C0392B;
-      --qa-green: #1A7A4A;
-      --qa-green-light: #E3F5EC;
-    }
-
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--qa-gray-1); min-height: 100vh; }
-
-    /* LAYOUT */
-    #app { display: flex; min-height: 100vh; }
-
-    /* SIDEBAR */
-    #sidebar {
-      width: 220px; min-width: 220px; background: var(--qa-blue);
-      display: flex; flex-direction: column; padding: 24px 0;
-      position: fixed; top: 0; left: 0; height: 100vh; z-index: 100;
-      transition: transform 0.25s ease;
-    }
-    .sidebar-logo { padding: 0 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.15); margin-bottom: 20px; }
-    .logo-mark { display: flex; align-items: center; gap: 10px; }
-    .logo-icon { width: 32px; height: 32px; border-radius: 8px; background: white; display: flex; align-items: center; justify-content: center; }
-    .logo-icon i { color: var(--qa-blue); font-size: 17px; }
-    .logo-text { display: flex; flex-direction: column; }
-    .logo-name { font-size: 17px; font-weight: 600; color: white; letter-spacing: -0.01em; line-height: 1.1; }
-    .logo-name span { opacity: 0.55; font-weight: 400; }
-    .logo-sub { font-size: 10px; color: rgba(255,255,255,0.4); letter-spacing: 0.04em; margin-top: 2px; }
-    .sidebar-label { font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.35); letter-spacing: 0.14em; text-transform: uppercase; padding: 0 20px; margin-bottom: 4px; }
-    .sidebar-item { display: flex; align-items: center; gap: 10px; padding: 10px 20px; cursor: pointer; font-size: 13px; color: rgba(255,255,255,0.65); transition: all 0.15s; text-decoration: none; border: none; background: transparent; width: 100%; text-align: left; font-family: inherit; }
-    .sidebar-item i { font-size: 16px; }
-    .sidebar-item:hover { color: white; background: rgba(255,255,255,0.08); }
-    .sidebar-item.active { color: white; background: rgba(255,255,255,0.15); font-weight: 500; }
-    .sidebar-divider { height: 1px; background: rgba(255,255,255,0.12); margin: 14px 0; }
-    .sidebar-bottom { margin-top: auto; padding: 0 16px; }
-    .credits-pill { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); border-radius: 10px; padding: 12px 14px; }
-    .credits-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-    .credits-label { font-size: 11px; color: rgba(255,255,255,0.5); }
-    .credits-count { font-size: 12px; font-weight: 600; color: white; }
-    .credits-bar { height: 4px; background: rgba(255,255,255,0.18); border-radius: 2px; }
-    .credits-fill { height: 100%; width: 63%; background: rgba(255,255,255,0.8); border-radius: 2px; }
-
-    /* OVERLAY (mobile) */
-    #overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 99; }
-    #overlay.show { display: block; }
-
-    /* MAIN */
-    #main { flex: 1; margin-left: 220px; display: flex; flex-direction: column; min-height: 100vh; }
-
-    #topbar { height: 56px; background: white; border-bottom: 1px solid var(--qa-gray-2); display: flex; align-items: center; justify-content: space-between; padding: 0 28px; position: sticky; top: 0; z-index: 5; }
-    .topbar-left { display: flex; align-items: center; gap: 12px; }
-    .topbar-title { font-size: 15px; font-weight: 500; color: var(--qa-black); }
-    .topbar-right { display: flex; align-items: center; gap: 10px; }
-    .hamburger { display: none; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--qa-gray-2); background: white; cursor: pointer; font-size: 18px; color: var(--qa-gray-5); }
-    .btn-ghost { display: flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--qa-gray-2); background: white; cursor: pointer; font-size: 13px; color: var(--qa-gray-5); font-family: inherit; transition: background 0.15s; }
-    .btn-ghost:hover { background: var(--qa-gray-1); }
-    .btn-primary { display: flex; align-items: center; gap: 7px; padding: 9px 18px; border-radius: 8px; border: none; cursor: pointer; font-size: 13px; font-weight: 600; background: var(--qa-blue); color: white; font-family: inherit; transition: background 0.15s; }
-    .btn-primary:hover { background: var(--qa-blue-dark); }
-    .btn-primary:disabled, .btn-ghost:disabled { opacity: 0.5; cursor: not-allowed; }
-
-    /* VIEWS */
-    #content { padding: 24px 28px 48px; display: flex; flex-direction: column; gap: 20px; max-width: 900px; width: 100%; }
-    #history-view { display: none; padding: 24px 28px 48px; flex-direction: column; gap: 20px; max-width: 900px; width: 100%; }
-    #history-view.show { display: flex; }
-
-    /* STEPS */
-    .steps-row { display: flex; align-items: center; }
-    .step-item { display: flex; align-items: center; gap: 8px; }
-    .step-dot { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; border: 2px solid var(--qa-gray-3); color: var(--qa-gray-4); background: white; flex-shrink: 0; }
-    .step-dot.done { background: var(--qa-blue); border-color: var(--qa-blue); color: white; }
-    .step-dot.active { border-color: var(--qa-blue); color: var(--qa-blue); background: var(--qa-blue-light); }
-    .step-label { font-size: 12px; color: var(--qa-gray-4); }
-    .step-label.active { color: var(--qa-black); font-weight: 500; }
-    .step-line { height: 1px; width: 32px; background: var(--qa-gray-3); margin: 0 8px; flex-shrink: 0; }
-    .step-line.done { background: var(--qa-blue); }
-
-    /* CARDS */
-    .section-card { background: white; border-radius: 14px; border: 1px solid var(--qa-gray-2); overflow: hidden; }
-    .section-header { padding: 14px 20px; border-bottom: 1px solid var(--qa-gray-2); display: flex; align-items: center; gap: 10px; }
-    .section-icon { font-size: 16px; color: var(--qa-blue); }
-    .section-title { font-size: 14px; font-weight: 500; color: var(--qa-black); }
-    .section-body { padding: 20px; }
-
-    /* FORM */
-    .form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
-    .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px; }
-    .form-grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-top: 14px; }
-    .field { display: flex; flex-direction: column; gap: 6px; }
-    .field label { font-size: 11px; font-weight: 600; color: var(--qa-gray-4); letter-spacing: 0.06em; text-transform: uppercase; }
-    .field input, .field select, .field textarea { padding: 9px 12px; border-radius: 8px; border: 1px solid var(--qa-gray-2); background: var(--qa-gray-1); font-size: 13px; color: var(--qa-black); font-family: inherit; outline: none; transition: border-color 0.15s, background 0.15s; width: 100%; }
-    .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--qa-blue); background: white; }
-    .field textarea { resize: vertical; min-height: 80px; }
-    .field select { appearance: none; cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238E8980' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
-    .char-counter { font-size: 11px; color: var(--qa-gray-4); text-align: right; }
-    .char-counter.warn { color: #C67C0A; }
-    .char-counter.over { color: var(--qa-red); }
-    .field input.err, .field select.err, .field textarea.err { border-color: var(--qa-red) !important; background: #FEF8F8; }
-    .field-err { font-size: 11px; color: var(--qa-red); margin-top: 2px; display: none; }
-    .field-err.show { display: block; }
-
-    /* PLATFORMS */
-    .platforms-grid { display: flex; flex-wrap: wrap; gap: 10px; }
-    .platform-pill { display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 50px; border: 1px solid var(--qa-gray-2); background: var(--qa-gray-1); cursor: pointer; font-size: 13px; font-weight: 500; color: var(--qa-gray-5); transition: all 0.15s; user-select: none; font-family: inherit; }
-    .platform-pill i { font-size: 15px; }
-    .platform-pill:hover { border-color: var(--qa-blue); color: var(--qa-blue); }
-    .platform-pill.sel { border-color: var(--qa-blue); background: var(--qa-blue-light); color: var(--qa-blue); }
-
-    /* TONE */
-    .tone-grid { display: flex; gap: 10px; margin-top: 14px; }
-    .tone-pill { flex: 1; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--qa-gray-2); background: var(--qa-gray-1); cursor: pointer; text-align: center; transition: all 0.15s; font-family: inherit; }
-    .tone-pill .tone-name { font-size: 13px; font-weight: 500; color: var(--qa-gray-5); display: block; }
-    .tone-pill .tone-desc { font-size: 11px; color: var(--qa-gray-4); margin-top: 3px; display: block; }
-    .tone-pill.sel { border-color: var(--qa-blue); background: var(--qa-blue-light); }
-    .tone-pill.sel .tone-name { color: var(--qa-blue); }
-
-    /* LOADING */
-    #loading { display: none; flex-direction: column; align-items: center; justify-content: center; padding: 56px 24px; gap: 16px; }
-    #loading.show { display: flex; }
-    .spinner { width: 36px; height: 36px; border: 3px solid var(--qa-gray-2); border-top-color: var(--qa-blue); border-radius: 50%; animation: spin 0.8s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .loading-text { font-size: 14px; color: var(--qa-gray-4); }
-
-    /* RESULTS */
-    #results { display: none; flex-direction: column; }
-    #results.show { display: flex; animation: fadeSlideIn 0.3s ease; }
-    @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    .results-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 10px; }
-    .results-title { font-size: 16px; font-weight: 500; color: var(--qa-black); }
-    .results-header-right { display: flex; align-items: center; gap: 10px; }
-    .success-badge { display: flex; align-items: center; gap: 6px; background: var(--qa-green-light); color: var(--qa-green); border-radius: 50px; padding: 5px 12px; font-size: 12px; font-weight: 500; }
-
-    .result-tabs { display: flex; border-bottom: 1px solid var(--qa-gray-2); overflow-x: auto; background: var(--qa-gray-1); }
-    .result-tab { display: flex; align-items: center; gap: 7px; padding: 11px 16px; font-size: 13px; font-weight: 500; color: var(--qa-gray-4); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s; white-space: nowrap; font-family: inherit; background: transparent; border-left: none; border-right: none; border-top: none; }
-    .result-tab i { font-size: 15px; }
-    .result-tab:hover { color: var(--qa-black); }
-    .result-tab.active { color: var(--qa-blue); border-bottom-color: var(--qa-blue); background: white; }
-
-    .result-panel { display: none; padding: 20px; }
-    .result-panel.show { display: flex; flex-direction: column; gap: 16px; }
-    .result-panel-actions { display: flex; justify-content: flex-end; }
-    .result-field { display: flex; flex-direction: column; gap: 7px; }
-    .result-field-header { display: flex; align-items: center; justify-content: space-between; }
-    .result-field-label { font-size: 11px; font-weight: 600; color: var(--qa-gray-4); letter-spacing: 0.1em; text-transform: uppercase; }
-    .result-text { padding: 14px 16px; border-radius: 8px; border: 1px solid var(--qa-gray-2); background: var(--qa-gray-1); font-size: 13px; color: var(--qa-black); line-height: 1.7; white-space: pre-wrap; font-family: inherit; }
-    .copy-btn { display: flex; align-items: center; gap: 5px; padding: 5px 11px; border-radius: 7px; border: 1px solid var(--qa-gray-2); background: white; cursor: pointer; font-size: 12px; font-weight: 500; color: var(--qa-gray-5); font-family: inherit; transition: all 0.15s; }
-    .copy-btn:hover { background: var(--qa-blue-light); border-color: var(--qa-blue); color: var(--qa-blue); }
-    .copy-btn.copied { color: var(--qa-green); border-color: var(--qa-green); background: var(--qa-green-light); }
-    .copy-all-btn { display: flex; align-items: center; gap: 5px; padding: 6px 14px; border-radius: 7px; border: 1px solid var(--qa-blue); background: var(--qa-blue-light); cursor: pointer; font-size: 12px; font-weight: 600; color: var(--qa-blue); font-family: inherit; transition: all 0.15s; }
-    .copy-all-btn:hover { background: var(--qa-blue); color: white; }
-    .copy-all-btn.copied { color: var(--qa-green); border-color: var(--qa-green); background: var(--qa-green-light); }
-
-    /* ERROR */
-    #error-msg { display: none; align-items: center; gap: 10px; background: #FEF0EF; border: 1px solid #FACCCA; border-radius: 10px; padding: 12px 16px; font-size: 13px; color: var(--qa-red); }
-    #error-msg.show { display: flex; }
-
-    /* HISTORY */
-    .history-toolbar { display: flex; align-items: center; justify-content: space-between; }
-    .history-title { font-size: 18px; font-weight: 600; color: var(--qa-black); }
-    .history-empty { text-align: center; padding: 56px 24px; color: var(--qa-gray-4); font-size: 14px; line-height: 1.6; }
-    .history-empty i { font-size: 36px; display: block; margin-bottom: 12px; opacity: 0.35; }
-    .history-card { background: white; border-radius: 14px; border: 1px solid var(--qa-gray-2); overflow: hidden; transition: box-shadow 0.15s; }
-    .history-card:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
-    .history-card-header { padding: 16px 18px; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
-    .history-card-info { flex: 1; min-width: 0; }
-    .history-card-title { font-size: 14px; font-weight: 500; color: var(--qa-black); }
-    .history-card-meta { font-size: 12px; color: var(--qa-gray-4); margin-top: 3px; }
-    .history-card-platforms { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
-    .history-platform-tag { font-size: 11px; background: var(--qa-blue-light); color: var(--qa-blue); border-radius: 4px; padding: 2px 8px; font-weight: 500; }
-    .history-card-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-    .btn-sm { display: flex; align-items: center; gap: 5px; padding: 6px 10px; border-radius: 7px; border: 1px solid var(--qa-gray-2); background: white; cursor: pointer; font-size: 12px; color: var(--qa-gray-5); font-family: inherit; transition: background 0.15s; }
-    .btn-sm:hover { background: var(--qa-gray-1); }
-    .btn-sm-danger { display: flex; align-items: center; gap: 5px; padding: 6px 10px; border-radius: 7px; border: 1px solid #FACCCA; background: white; cursor: pointer; font-size: 12px; color: var(--qa-red); font-family: inherit; transition: background 0.15s; }
-    .btn-sm-danger:hover { background: #FEF0EF; }
-    .history-body { display: none; border-top: 1px solid var(--qa-gray-2); padding: 18px; }
-    .history-body.open { display: block; }
-    .history-platform-section { margin-bottom: 20px; }
-    .history-platform-section:last-child { margin-bottom: 0; }
-    .history-platform-label { font-size: 12px; font-weight: 600; color: var(--qa-blue); display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
-    .history-field { margin-bottom: 12px; }
-    .history-field:last-child { margin-bottom: 0; }
-    .history-field-label { font-size: 10px; font-weight: 600; color: var(--qa-gray-4); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 5px; }
-    .history-field-text { padding: 10px 14px; border-radius: 8px; border: 1px solid var(--qa-gray-2); background: var(--qa-gray-1); font-size: 13px; color: var(--qa-black); line-height: 1.7; white-space: pre-wrap; font-family: inherit; }
-
-    @media (max-width: 768px) {
-      #sidebar { transform: translateX(-100%); }
-      #sidebar.open { transform: translateX(0); }
-      #main { margin-left: 0; }
-      .form-grid-3, .form-grid-5 { grid-template-columns: 1fr 1fr; }
-      .form-grid-2 { grid-template-columns: 1fr; }
-      .tone-grid { flex-direction: column; }
-      .hamburger { display: flex; }
-      #topbar { padding: 0 16px; }
-      #content, #history-view { padding: 20px 16px 48px; }
-    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: system-ui, -apple-system, sans-serif; background: #f1f5f9; }
+    input:focus, select:focus, textarea:focus { outline: 2px solid #10b981; outline-offset: -1px; }
+    .fade-in { animation: fadeIn 0.25s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+    .kanban-scroll { overflow-x: auto; padding-bottom: 8px; }
+    .card-hover { transition: transform 0.15s, box-shadow 0.15s; }
+    .card-hover:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
   </style>
 </head>
 <body>
-<div id="overlay" onclick="closeSidebar()"></div>
-<div id="app">
-  <nav id="sidebar">
-    <div class="sidebar-logo">
-      <div class="logo-mark">
-        <div class="logo-icon"><i class="ti ti-home-heart"></i></div>
-        <div class="logo-text">
-          <span class="logo-name">Pop<span>Lar</span></span>
-          <span class="logo-sub">anúncios com IA</span>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
+        PieChart, Pie, Cell, ResponsiveContainer } = Recharts;
+
+// ─── DADOS MOCKADOS ───────────────────────────────────────────────────────────
+
+const CIDADES_BAIRROS = {
+  "São Paulo": ["Moema","Vila Madalena","Pinheiros","Jardins","Itaim Bibi","Morumbi","Lapa","Santana","Tatuapé","Mooca","Alphaville"],
+  "Rio de Janeiro": ["Ipanema","Leblon","Copacabana","Barra da Tijuca","Botafogo","Flamengo","Tijuca","Méier","Madureira"],
+  "Curitiba": ["Batel","Água Verde","Bigorrilho","Centro","Ahú","Rebouças","Mercês","Alto da XV","Portão"],
+  "Belo Horizonte": ["Savassi","Lourdes","Funcionários","Serra","Santo Agostinho","Buritis","Belvedere","Anchieta","Pampulha"],
+  "Brasília": ["Asa Sul","Asa Norte","Lago Sul","Lago Norte","Sudoeste","Noroeste","Guará","Taguatinga"],
+};
+const CIDADES = Object.keys(CIDADES_BAIRROS);
+
+const MOCK_LEADS = [
+  { id:1, nome:"Carlos Mendes", email:"carlos@email.com", telefone:"(11) 99234-5678", origem:"Site", status:"Novo", imovel:"Apto 3 quartos – Moema", valor:"R$ 850.000", data:"2026-06-20", notas:"Procura apartamento perto do metrô" },
+  { id:2, nome:"Ana Rodrigues", email:"ana.r@email.com", telefone:"(11) 98765-4321", origem:"Indicação", status:"Contato", imovel:"Casa 4 quartos – Morumbi", valor:"R$ 1.200.000", data:"2026-06-18", notas:"Financiamento pré-aprovado" },
+  { id:3, nome:"Roberto Lima", email:"roberto@email.com", telefone:"(21) 97654-3210", origem:"Instagram", status:"Visita Agendada", imovel:"Studio – Pinheiros", valor:"R$ 320.000", data:"2026-06-15", notas:"Visita marcada p/ sábado 11h" },
+  { id:4, nome:"Fernanda Costa", email:"fernanda@email.com", telefone:"(11) 96543-2109", origem:"Portais", status:"Proposta", imovel:"Apto 2 quartos – Jardins", valor:"R$ 650.000", data:"2026-06-10", notas:"Proposta de R$ 620k enviada" },
+  { id:5, nome:"Marcelo Santos", email:"marcelo@email.com", telefone:"(11) 95432-1098", origem:"Site", status:"Fechado", imovel:"Cobertura – Itaim Bibi", valor:"R$ 2.100.000", data:"2026-06-05", notas:"Escritura em 15/07 ✅" },
+  { id:6, nome:"Juliana Alves", email:"juliana@email.com", telefone:"(11) 94321-0987", origem:"Indicação", status:"Perdido", imovel:"Apto 1 quarto – Vila Madalena", valor:"R$ 280.000", data:"2026-06-01", notas:"Optou por outra imobiliária" },
+  { id:7, nome:"Paulo Ferreira", email:"paulo.f@email.com", telefone:"(21) 93210-9876", origem:"Google", status:"Novo", imovel:"Casa 3 quartos – Barra", valor:"R$ 980.000", data:"2026-06-22", notas:"Formulário do site" },
+  { id:8, nome:"Marcia Oliveira", email:"marcia@email.com", telefone:"(11) 92109-8765", origem:"Site", status:"Contato", imovel:"Terreno – Alphaville", valor:"R$ 450.000", data:"2026-06-19", notas:"Interesse em terreno para construção" },
+];
+
+const MOCK_CONTATOS = [
+  { id:1, nome:"Carlos Mendes", tipo:"Lead", email:"carlos@email.com", telefone:"(11) 99234-5678", cidade:"São Paulo", tags:["Comprador","Financiamento"] },
+  { id:2, nome:"Ana Rodrigues", tipo:"Cliente", email:"ana.r@email.com", telefone:"(11) 98765-4321", cidade:"São Paulo", tags:["VIP","Comprador"] },
+  { id:3, nome:"Roberto Lima", tipo:"Lead", email:"roberto@email.com", telefone:"(21) 97654-3210", cidade:"Rio de Janeiro", tags:["Investidor"] },
+  { id:4, nome:"Fernanda Costa", tipo:"Lead", email:"fernanda@email.com", telefone:"(11) 96543-2109", cidade:"São Paulo", tags:["Comprador"] },
+  { id:5, nome:"Marcelo Santos", tipo:"Cliente", email:"marcelo@email.com", telefone:"(11) 95432-1098", cidade:"São Paulo", tags:["VIP","Fechado"] },
+  { id:6, nome:"João Proprietário", tipo:"Proprietário", email:"joao.p@email.com", telefone:"(11) 94567-8901", cidade:"São Paulo", tags:["Proprietário"] },
+  { id:7, nome:"Maria Proprietária", tipo:"Proprietária", email:"maria.p@email.com", telefone:"(21) 93456-7890", cidade:"Rio de Janeiro", tags:["Proprietária","VIP"] },
+  { id:8, nome:"Paulo Ferreira", tipo:"Lead", email:"paulo.f@email.com", telefone:"(21) 93210-9876", cidade:"Rio de Janeiro", tags:["Comprador"] },
+  { id:9, nome:"Marcia Oliveira", tipo:"Lead", email:"marcia@email.com", telefone:"(11) 92109-8765", cidade:"São Paulo", tags:["Investidor"] },
+  { id:10, nome:"Luiz Corretor", tipo:"Parceiro", email:"luiz.c@email.com", telefone:"(11) 91098-7654", cidade:"São Paulo", tags:["Parceiro"] },
+];
+
+const MOCK_IMOVEIS = [
+  { id:1, titulo:"Apartamento 3 quartos – Moema", tipo:"Apartamento", cidade:"São Paulo", bairro:"Moema", valor:"R$ 850.000", area:"95m²", quartos:3, banheiros:2, vagas:2, status:"Disponível", proprietario:"João Proprietário", destaque:true },
+  { id:2, titulo:"Casa 4 quartos – Morumbi", tipo:"Casa", cidade:"São Paulo", bairro:"Morumbi", valor:"R$ 1.200.000", area:"220m²", quartos:4, banheiros:3, vagas:3, status:"Disponível", proprietario:"Maria Proprietária", destaque:true },
+  { id:3, titulo:"Studio – Pinheiros", tipo:"Apartamento", cidade:"São Paulo", bairro:"Pinheiros", valor:"R$ 320.000", area:"38m²", quartos:1, banheiros:1, vagas:1, status:"Reservado", proprietario:"João Proprietário", destaque:false },
+  { id:4, titulo:"Apartamento 2 quartos – Jardins", tipo:"Apartamento", cidade:"São Paulo", bairro:"Jardins", valor:"R$ 650.000", area:"72m²", quartos:2, banheiros:2, vagas:1, status:"Disponível", proprietario:"Maria Proprietária", destaque:false },
+  { id:5, titulo:"Cobertura – Itaim Bibi", tipo:"Cobertura", cidade:"São Paulo", bairro:"Itaim Bibi", valor:"R$ 2.100.000", area:"310m²", quartos:4, banheiros:4, vagas:4, status:"Vendido", proprietario:"João Proprietário", destaque:false },
+  { id:6, titulo:"Casa 3 quartos – Barra da Tijuca", tipo:"Casa", cidade:"Rio de Janeiro", bairro:"Barra da Tijuca", valor:"R$ 980.000", area:"180m²", quartos:3, banheiros:3, vagas:2, status:"Disponível", proprietario:"Maria Proprietária", destaque:true },
+  { id:7, titulo:"Terreno – Alphaville", tipo:"Terreno", cidade:"São Paulo", bairro:"Alphaville", valor:"R$ 450.000", area:"500m²", quartos:0, banheiros:0, vagas:0, status:"Disponível", proprietario:"João Proprietário", destaque:false },
+  { id:8, titulo:"Apto 1 quarto – Vila Madalena", tipo:"Apartamento", cidade:"São Paulo", bairro:"Vila Madalena", valor:"R$ 280.000", area:"45m²", quartos:1, banheiros:1, vagas:1, status:"Disponível", proprietario:"Maria Proprietária", destaque:false },
+];
+
+const MOCK_AGENDA = [
+  { id:1, titulo:"Visita – Carlos Mendes", tipo:"Visita", data:"2026-06-28", hora:"10:00", local:"Rua das Flores, 123 – Moema", contato:"Carlos Mendes", imovel:"Apto 3 quartos – Moema", status:"Confirmado", notas:"Levar planta baixa" },
+  { id:2, titulo:"Reunião – Ana Rodrigues", tipo:"Reunião", data:"2026-06-28", hora:"14:30", local:"Escritório PopLar", contato:"Ana Rodrigues", imovel:"Casa 4 quartos – Morumbi", status:"Confirmado", notas:"Apresentar proposta final" },
+  { id:3, titulo:"Visita – Roberto Lima", tipo:"Visita", data:"2026-06-29", hora:"11:00", local:"Rua Augusta, 456 – Pinheiros", contato:"Roberto Lima", imovel:"Studio – Pinheiros", status:"Pendente", notas:"" },
+  { id:4, titulo:"Assinatura – Marcelo Santos", tipo:"Assinatura", data:"2026-07-15", hora:"09:00", local:"Cartório Central", contato:"Marcelo Santos", imovel:"Cobertura – Itaim Bibi", status:"Confirmado", notas:"RG, CPF e comprovante" },
+  { id:5, titulo:"Avaliação – João Proprietário", tipo:"Avaliação", data:"2026-06-30", hora:"16:00", local:"Av. Paulista, 789 – Jardins", contato:"João Proprietário", imovel:"Apto 2 quartos – Jardins", status:"Pendente", notas:"Fazer relatório de avaliação" },
+];
+
+const MOCK_ATENDIMENTOS = [
+  { id:1, tipo:"Ligação", contato:"Carlos Mendes", data:"2026-06-20", hora:"09:30", duracao:"15 min", resumo:"Primeiro contato. Cliente procura apto 3 quartos perto do metrô. Budget até R$900k.", status:"Concluído", proximo:"Enviar opções por e-mail" },
+  { id:2, tipo:"Email", contato:"Ana Rodrigues", data:"2026-06-18", hora:"11:00", duracao:"–", resumo:"Envio de 3 opções de imóveis no Morumbi. Cliente tem financiamento pré-aprovado.", status:"Concluído", proximo:"Aguardar retorno" },
+  { id:3, tipo:"WhatsApp", contato:"Roberto Lima", data:"2026-06-22", hora:"14:15", duracao:"8 min", resumo:"Confirmação da visita ao studio em Pinheiros para sábado às 11h.", status:"Concluído", proximo:"Confirmar visita" },
+  { id:4, tipo:"Visita", contato:"Fernanda Costa", data:"2026-06-21", hora:"10:00", duracao:"45 min", resumo:"Visita ao apartamento nos Jardins. Gostou mas pediu desconto de R$30k.", status:"Concluído", proximo:"Negociar com proprietária" },
+  { id:5, tipo:"Reunião", contato:"Marcelo Santos", data:"2026-06-05", hora:"15:00", duracao:"1h 30min", resumo:"Fechamento. Valor final: R$2.050.000. Escritura em 15/07.", status:"Concluído", proximo:"Escritura 15/07" },
+  { id:6, tipo:"Ligação", contato:"Paulo Ferreira", data:"2026-06-22", hora:"17:30", duracao:"10 min", resumo:"Retorno ao formulário do site. Interesse em casa na Barra com 3 quartos e piscina.", status:"Concluído", proximo:"Agendar visita" },
+];
+
+const MOCK_NOTIFS = [
+  { id:1, tipo:"lead", titulo:"Novo lead recebido", mensagem:"Paulo Ferreira se cadastrou pelo site", data:"2026-06-22 17:25", lida:false },
+  { id:2, tipo:"agenda", titulo:"Visita em 1 hora", mensagem:"Carlos Mendes – Apto 3 quartos Moema – 10:00", data:"2026-06-28 09:00", lida:false },
+  { id:3, tipo:"proposta", titulo:"Proposta respondida", mensagem:"Fernanda Costa contrapropos R$ 620.000", data:"2026-06-21 16:40", lida:false },
+  { id:4, tipo:"sistema", titulo:"Imóvel atualizado", mensagem:"Studio Pinheiros marcado como Reservado", data:"2026-06-20 11:20", lida:true },
+  { id:5, tipo:"lead", titulo:"Lead inativo", mensagem:"Juliana Alves sem contato há 27 dias", data:"2026-06-15 08:00", lida:true },
+];
+
+// ─── HELPERS ──────────────────────────────────────────────────────────────────
+
+function Badge({ text, color="gray" }) {
+  const cls = {
+    green:"bg-green-100 text-green-800", blue:"bg-blue-100 text-blue-800",
+    yellow:"bg-yellow-100 text-yellow-800", red:"bg-red-100 text-red-800",
+    purple:"bg-purple-100 text-purple-800", gray:"bg-gray-100 text-gray-600",
+    orange:"bg-orange-100 text-orange-800", emerald:"bg-emerald-100 text-emerald-800",
+  };
+  return <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${cls[color]||cls.gray}`}>{text}</span>;
+}
+
+const STATUS_COLOR = {
+  "Novo":"blue","Contato":"yellow","Visita Agendada":"purple","Proposta":"orange",
+  "Fechado":"green","Perdido":"red","Disponível":"green","Reservado":"yellow",
+  "Vendido":"gray","Concluído":"green","Confirmado":"green","Pendente":"yellow"
+};
+function sc(s) { return STATUS_COLOR[s] || "gray"; }
+
+// ─── LOGIN ────────────────────────────────────────────────────────────────────
+
+function Login({ onLogin }) {
+  const [email, setEmail] = useState("");
+  const [senha, setSenha] = useState("");
+  const [err, setErr] = useState("");
+
+  function handle(e) {
+    e.preventDefault();
+    if (!email || !senha) { setErr("Preencha todos os campos."); return; }
+    if (email === "admin@poplar.com.br" && senha === "123456") {
+      onLogin({ nome:"Allan Sarin", email, avatar:"AS", cargo:"Corretor Sênior" });
+    } else {
+      setErr("Credenciais inválidas. Use admin@poplar.com.br / 123456");
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-emerald-900 via-emerald-800 to-teal-900 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-emerald-600 rounded-2xl mb-4">
+            <span className="text-white text-3xl font-bold">P</span>
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900">PopLar CRM</h1>
+          <p className="text-gray-400 text-sm mt-1">Gestão Imobiliária Inteligente</p>
+        </div>
+        <form onSubmit={handle} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">E-mail</label>
+            <input type="email" value={email} onChange={e=>setEmail(e.target.value)}
+              placeholder="admin@poplar.com.br"
+              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Senha</label>
+            <input type="password" value={senha} onChange={e=>setSenha(e.target.value)}
+              placeholder="••••••"
+              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm" />
+          </div>
+          {err && <p className="text-red-600 text-sm">{err}</p>}
+          <button type="submit"
+            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-lg transition-colors">
+            Entrar
+          </button>
+        </form>
+        <p className="text-center text-gray-400 text-xs mt-6">admin@poplar.com.br · senha: 123456</p>
+      </div>
+    </div>
+  );
+}
+
+// ─── SIDEBAR ──────────────────────────────────────────────────────────────────
+
+const NAV = [
+  { id:"dashboard",    label:"Dashboard",      emoji:"📊" },
+  { id:"leads",        label:"Leads",          emoji:"👥" },
+  { id:"contatos",     label:"Contatos",       emoji:"👤" },
+  { id:"imoveis",      label:"Imóveis",        emoji:"🏢" },
+  { id:"agenda",       label:"Agenda",         emoji:"📅" },
+  { id:"atendimentos", label:"Atendimentos",   emoji:"💬" },
+  { id:"anuncio",      label:"Gerar Anúncio",  emoji:"✨" },
+  { id:"notificacoes", label:"Notificações",   emoji:"🔔" },
+];
+
+function Sidebar({ view, setView, user, naoLidas, col, setCol }) {
+  return (
+    <aside className={`${col?"w-16":"w-60"} bg-emerald-900 text-white flex flex-col flex-shrink-0 transition-all duration-200`} style={{minHeight:"100vh"}}>
+      <div className="flex items-center gap-3 px-4 py-4 border-b border-emerald-800">
+        <div className="w-9 h-9 bg-emerald-500 rounded-xl flex items-center justify-center flex-shrink-0 font-bold text-lg">P</div>
+        {!col && <span className="font-bold text-lg tracking-tight">PopLar CRM</span>}
+        <button onClick={()=>setCol(!col)} className="ml-auto text-emerald-400 hover:text-white text-xs px-1">{col?"▶":"◀"}</button>
+      </div>
+      <nav className="flex-1 py-3 px-2 space-y-0.5">
+        {NAV.map(n => (
+          <button key={n.id} onClick={()=>setView(n.id)}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all
+              ${view===n.id ? "bg-emerald-600 text-white" : "text-emerald-200 hover:bg-emerald-800 hover:text-white"}`}>
+            <span className="text-base flex-shrink-0">{n.emoji}</span>
+            {!col && <span className="flex-1 text-left">{n.label}</span>}
+            {!col && n.id==="notificacoes" && naoLidas>0 &&
+              <span className="bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{naoLidas}</span>}
+          </button>
+        ))}
+      </nav>
+      {!col && (
+        <div className="border-t border-emerald-800 p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 bg-emerald-600 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
+              {user.avatar}
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-medium truncate">{user.nome}</p>
+              <p className="text-xs text-emerald-400 truncate">{user.cargo}</p>
+            </div>
+          </div>
+        </div>
+      )}
+    </aside>
+  );
+}
+
+// ─── TOPBAR ───────────────────────────────────────────────────────────────────
+
+const TITLES = {
+  dashboard:"Dashboard", leads:"Leads (Kanban)", contatos:"Contatos",
+  imoveis:"Imóveis", agenda:"Agenda", atendimentos:"Atendimentos",
+  anuncio:"Gerar Anúncio com IA", notificacoes:"Notificações"
+};
+
+function Topbar({ view, naoLidas, setView, onLogout }) {
+  return (
+    <header className="bg-white border-b border-gray-200 px-6 py-3.5 flex items-center gap-4 flex-shrink-0">
+      <h1 className="text-base font-semibold text-gray-900 flex-1">{TITLES[view]}</h1>
+      <button onClick={()=>setView("notificacoes")} className="relative p-2 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-lg text-lg">
+        🔔{naoLidas>0 && <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>}
+      </button>
+      <button onClick={onLogout} className="text-sm text-gray-500 hover:text-gray-800 px-3 py-1.5 rounded-lg hover:bg-gray-100 border border-gray-200">
+        Sair
+      </button>
+    </header>
+  );
+}
+
+// ─── DASHBOARD ────────────────────────────────────────────────────────────────
+
+const CHART_DATA = [
+  {mes:"Jan",leads:12,fechamentos:2},{mes:"Fev",leads:19,fechamentos:3},
+  {mes:"Mar",leads:15,fechamentos:4},{mes:"Abr",leads:23,fechamentos:5},
+  {mes:"Mai",leads:18,fechamentos:3},{mes:"Jun",leads:28,fechamentos:6},
+];
+const PIE_DATA = [
+  {name:"Novos",value:2,color:"#3b82f6"},{name:"Contato",value:2,color:"#f59e0b"},
+  {name:"Visita",value:1,color:"#8b5cf6"},{name:"Proposta",value:1,color:"#f97316"},
+  {name:"Fechado",value:1,color:"#10b981"},{name:"Perdido",value:1,color:"#ef4444"},
+];
+
+function Dashboard({ leads, imoveis }) {
+  const kpis = [
+    { label:"Leads Ativos",        value:leads.filter(l=>l.status!=="Perdido").length, emoji:"👥", bg:"bg-blue-50",   border:"border-blue-200" },
+    { label:"Imóveis Disponíveis", value:imoveis.filter(i=>i.status==="Disponível").length, emoji:"🏢", bg:"bg-emerald-50", border:"border-emerald-200" },
+    { label:"Fechamentos no Mês",  value:1,         emoji:"🏆", bg:"bg-yellow-50", border:"border-yellow-200" },
+    { label:"Ticket Médio",        value:"R$ 850k", emoji:"💰", bg:"bg-purple-50", border:"border-purple-200" },
+  ];
+  return (
+    <div className="p-6 space-y-6 fade-in">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {kpis.map(k=>(
+          <div key={k.label} className={`${k.bg} border ${k.border} rounded-xl p-5`}>
+            <div className="text-3xl mb-2">{k.emoji}</div>
+            <p className="text-2xl font-bold text-gray-900">{k.value}</p>
+            <p className="text-sm text-gray-600 mt-0.5">{k.label}</p>
+          </div>
+        ))}
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-5">
+          <h3 className="font-semibold text-gray-900 mb-4 text-sm">Leads &amp; Fechamentos por Mês</h3>
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={CHART_DATA} barGap={4}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+              <XAxis dataKey="mes" tick={{fontSize:11}} />
+              <YAxis tick={{fontSize:11}} />
+              <Tooltip />
+              <Legend wrapperStyle={{fontSize:12}} />
+              <Bar dataKey="leads" name="Leads" fill="#10b981" radius={[3,3,0,0]} />
+              <Bar dataKey="fechamentos" name="Fechamentos" fill="#f59e0b" radius={[3,3,0,0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <h3 className="font-semibold text-gray-900 mb-3 text-sm">Leads por Status</h3>
+          <ResponsiveContainer width="100%" height={160}>
+            <PieChart>
+              <Pie data={PIE_DATA} cx="50%" cy="50%" innerRadius={45} outerRadius={70} dataKey="value" paddingAngle={2}>
+                {PIE_DATA.map((e,i)=><Cell key={i} fill={e.color} />)}
+              </Pie>
+              <Tooltip />
+            </PieChart>
+          </ResponsiveContainer>
+          <div className="grid grid-cols-2 gap-1 mt-2">
+            {PIE_DATA.map(d=>(
+              <div key={d.name} className="flex items-center gap-1.5 text-xs text-gray-600">
+                <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{background:d.color}}></span>
+                {d.name} ({d.value})
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <h3 className="font-semibold text-gray-900 mb-3 text-sm">Últimos Atendimentos</h3>
+          <div className="space-y-3">
+            {MOCK_ATENDIMENTOS.slice(0,4).map(a=>(
+              <div key={a.id} className="flex items-start gap-3">
+                <span className="text-xl">{a.tipo==="Ligação"?"📞":a.tipo==="Email"?"📧":a.tipo==="WhatsApp"?"💬":a.tipo==="Visita"?"🏠":"👥"}</span>
+                <div>
+                  <p className="text-sm font-medium text-gray-900">{a.contato}</p>
+                  <p className="text-xs text-gray-500 line-clamp-1">{a.resumo}</p>
+                  <p className="text-xs text-gray-400">{a.data} {a.hora}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <h3 className="font-semibold text-gray-900 mb-3 text-sm">Próximos Eventos</h3>
+          <div className="space-y-3">
+            {MOCK_AGENDA.filter(e=>e.status==="Confirmado").map(e=>(
+              <div key={e.id} className="flex items-start gap-3">
+                <span className="text-xl">{e.tipo==="Visita"?"🏠":e.tipo==="Reunião"?"👥":e.tipo==="Assinatura"?"✍️":"📋"}</span>
+                <div>
+                  <p className="text-sm font-medium text-gray-900">{e.titulo}</p>
+                  <p className="text-xs text-gray-500">{e.data} às {e.hora}</p>
+                  <p className="text-xs text-gray-400 line-clamp-1">{e.local}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
-    <span class="sidebar-label">Menu</span>
-    <button class="sidebar-item active" id="nav-gerar" onclick="showView('gerar')"><i class="ti ti-wand"></i> Gerar anúncio</button>
-    <button class="sidebar-item" id="nav-historico" onclick="showView('historico')"><i class="ti ti-history"></i> Histórico</button>
-    <a class="sidebar-item" href="#"><i class="ti ti-building"></i> Meus imóveis</a>
-    <div class="sidebar-divider"></div>
-    <span class="sidebar-label">Conta</span>
-    <a class="sidebar-item" href="#"><i class="ti ti-settings"></i> Configurações</a>
-    <div class="sidebar-bottom">
-      <div class="credits-pill">
-        <div class="credits-row">
-          <span class="credits-label">Créditos restantes</span>
-          <i class="ti ti-bolt" style="color:rgba(255,255,255,0.6);font-size:15px"></i>
+  );
+}
+
+// ─── LEADS KANBAN ─────────────────────────────────────────────────────────────
+
+const COLS = ["Novo","Contato","Visita Agendada","Proposta","Fechado","Perdido"];
+
+function LeadsKanban({ leads, setLeads }) {
+  const [search, setSearch] = useState("");
+  const [modal, setModal] = useState(false);
+  const [editId, setEditId] = useState(null);
+  const empty = { nome:"", email:"", telefone:"", origem:"Site", status:"Novo", imovel:"", valor:"", notas:"" };
+  const [form, setForm] = useState(empty);
+
+  const fil = leads.filter(l=>
+    l.nome.toLowerCase().includes(search.toLowerCase()) ||
+    l.imovel.toLowerCase().includes(search.toLowerCase())
+  );
+  const byCol = col => fil.filter(l=>l.status===col);
+
+  function openNew() { setForm(empty); setEditId(null); setModal(true); }
+  function openEdit(l) { setForm({...l}); setEditId(l.id); setModal(true); }
+  function save() {
+    if (!form.nome.trim()) return;
+    if (editId) setLeads(leads.map(l=>l.id===editId?{...l,...form}:l));
+    else setLeads([...leads,{...form,id:Date.now(),data:new Date().toISOString().slice(0,10)}]);
+    setModal(false);
+  }
+  function del() {
+    if (editId && window.confirm("Remover este lead?")) { setLeads(leads.filter(l=>l.id!==editId)); setModal(false); }
+  }
+
+  return (
+    <div className="p-6 fade-in flex flex-col" style={{height:"calc(100vh - 57px)"}}>
+      <div className="flex items-center gap-3 mb-4 flex-shrink-0">
+        <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Buscar lead..."
+          className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-64" />
+        <span className="text-sm text-gray-500">{leads.length} leads</span>
+        <button onClick={openNew} className="ml-auto bg-emerald-600 hover:bg-emerald-700 text-white text-sm px-4 py-2 rounded-lg font-medium">
+          + Novo Lead
+        </button>
+      </div>
+      <div className="flex gap-4 overflow-x-auto flex-1 kanban-scroll">
+        {COLS.map(col=>(
+          <div key={col} className="flex-shrink-0 w-60">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">{col}</span>
+              <Badge text={byCol(col).length} color={sc(col)} />
+            </div>
+            <div className="space-y-2">
+              {byCol(col).map(l=>(
+                <div key={l.id} onClick={()=>openEdit(l)}
+                  className="bg-white rounded-xl border border-gray-200 p-3.5 cursor-pointer card-hover">
+                  <p className="font-semibold text-gray-900 text-sm leading-tight">{l.nome}</p>
+                  <p className="text-xs text-gray-500 mt-1 line-clamp-1">{l.imovel}</p>
+                  <p className="text-xs font-bold text-emerald-700 mt-2">{l.valor}</p>
+                  <div className="flex items-center justify-between mt-2">
+                    <span className="text-xs text-gray-400">{l.origem}</span>
+                    <span className="text-xs text-gray-400">{l.data}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+      {modal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="font-bold text-lg">{editId?"Editar Lead":"Novo Lead"}</h2>
+              {editId && <button onClick={del} className="text-red-500 hover:text-red-700 text-sm">Remover</button>}
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {[["Nome","nome"],["Telefone","telefone"],["Email","email","col-span-2"],
+                ["Imóvel de Interesse","imovel","col-span-2"],["Valor Estimado","valor"]].map(([lbl,key,cls])=>(
+                <div key={key} className={cls||""}>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">{lbl}</label>
+                  <input value={form[key]||""} onChange={e=>setForm({...form,[key]:e.target.value})}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+                </div>
+              ))}
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Origem</label>
+                <select value={form.origem} onChange={e=>setForm({...form,origem:e.target.value})}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                  {["Site","Instagram","Indicação","Portais","Google","WhatsApp","Outros"].map(o=><option key={o}>{o}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Status</label>
+                <select value={form.status} onChange={e=>setForm({...form,status:e.target.value})}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                  {COLS.map(c=><option key={c}>{c}</option>)}
+                </select>
+              </div>
+              <div className="col-span-2">
+                <label className="block text-xs font-medium text-gray-600 mb-1">Notas</label>
+                <textarea value={form.notas||""} onChange={e=>setForm({...form,notas:e.target.value})}
+                  rows={2} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm resize-none" />
+              </div>
+            </div>
+            <div className="flex gap-3 mt-5">
+              <button onClick={()=>setModal(false)}
+                className="flex-1 border border-gray-300 text-gray-700 py-2 rounded-lg text-sm hover:bg-gray-50">Cancelar</button>
+              <button onClick={save}
+                className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-lg text-sm font-semibold">Salvar</button>
+            </div>
+          </div>
         </div>
-        <div class="credits-count">19 / 30 gerações</div>
-        <div class="credits-bar" style="margin-top:8px"><div class="credits-fill"></div></div>
+      )}
+    </div>
+  );
+}
+
+// ─── CONTATOS ─────────────────────────────────────────────────────────────────
+
+function Contatos({ contatos }) {
+  const [search, setSearch] = useState("");
+  const [tipo, setTipo] = useState("Todos");
+  const tipos = ["Todos","Lead","Cliente","Proprietário","Proprietária","Parceiro"];
+  const fil = contatos.filter(c=>
+    (tipo==="Todos"||c.tipo===tipo) &&
+    (c.nome.toLowerCase().includes(search.toLowerCase())||c.email.toLowerCase().includes(search.toLowerCase()))
+  );
+  return (
+    <div className="p-6 fade-in">
+      <div className="flex flex-wrap items-center gap-3 mb-5">
+        <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Buscar contato..."
+          className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-64" />
+        <div className="flex gap-1.5 flex-wrap">
+          {tipos.map(t=>(
+            <button key={t} onClick={()=>setTipo(t)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${tipo===t?"bg-emerald-600 text-white":"bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"}`}>
+              {t}
+            </button>
+          ))}
+        </div>
+        <span className="text-sm text-gray-400 ml-auto">{fil.length} contatos</span>
+      </div>
+      <div className="bg-white rounded-xl border border-gray-200 overflow-auto">
+        <table className="w-full text-sm min-w-max">
+          <thead className="bg-gray-50 border-b border-gray-200">
+            <tr>{["Nome","Tipo","E-mail","Telefone","Cidade","Tags"].map(h=>(
+              <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">{h}</th>
+            ))}</tr>
+          </thead>
+          <tbody>
+            {fil.map((c,i)=>(
+              <tr key={c.id} className={`border-b border-gray-100 hover:bg-gray-50 ${i%2===1?"bg-gray-50/40":""}`}>
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center font-bold text-xs flex-shrink-0">
+                      {c.nome.split(" ").slice(0,2).map(w=>w[0]).join("")}
+                    </div>
+                    <span className="font-medium text-gray-900 whitespace-nowrap">{c.nome}</span>
+                  </div>
+                </td>
+                <td className="px-4 py-3"><Badge text={c.tipo} color={c.tipo==="Cliente"?"green":c.tipo==="Lead"?"blue":c.tipo.includes("Proprietár")?"purple":"gray"} /></td>
+                <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{c.email}</td>
+                <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{c.telefone}</td>
+                <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{c.cidade}</td>
+                <td className="px-4 py-3"><div className="flex flex-wrap gap-1">{c.tags.map(t=><Badge key={t} text={t} color="gray" />)}</div></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {fil.length===0 && <p className="text-center text-gray-400 py-12 text-sm">Nenhum contato encontrado</p>}
       </div>
     </div>
-  </nav>
+  );
+}
 
-  <div id="main">
-    <div id="topbar">
-      <div class="topbar-left">
-        <button class="hamburger" onclick="toggleSidebar()"><i class="ti ti-menu-2"></i></button>
-        <span class="topbar-title" id="topbar-title">Novo anúncio</span>
+// ─── IMÓVEIS ──────────────────────────────────────────────────────────────────
+
+const TIPO_EMOJI = { "Apartamento":"🏢","Casa":"🏠","Cobertura":"🏙️","Terreno":"🌿","Studio":"🏢" };
+
+function Imoveis({ imoveis }) {
+  const [search, setSearch] = useState("");
+  const [status, setStatus] = useState("Todos");
+  const statuses = ["Todos","Disponível","Reservado","Vendido"];
+  const fil = imoveis.filter(i=>
+    (status==="Todos"||i.status===status) &&
+    (i.titulo.toLowerCase().includes(search.toLowerCase())||i.bairro.toLowerCase().includes(search.toLowerCase()))
+  );
+  return (
+    <div className="p-6 fade-in">
+      <div className="flex flex-wrap items-center gap-3 mb-5">
+        <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Buscar imóvel..."
+          className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-64" />
+        <div className="flex gap-1.5">
+          {statuses.map(s=>(
+            <button key={s} onClick={()=>setStatus(s)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${status===s?"bg-emerald-600 text-white":"bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"}`}>
+              {s}
+            </button>
+          ))}
+        </div>
+        <span className="text-sm text-gray-400 ml-auto">{fil.length} imóveis</span>
       </div>
-      <div class="topbar-right" id="topbar-actions">
-        <button class="btn-ghost" onclick="clearForm()"><i class="ti ti-refresh"></i> Limpar</button>
-        <button class="btn-primary" id="gen-btn" onclick="generate()"><i class="ti ti-wand"></i> Gerar com IA</button>
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        {fil.map(im=>(
+          <div key={im.id} className="bg-white rounded-xl border border-gray-200 overflow-hidden card-hover cursor-default">
+            <div className="h-32 bg-gradient-to-br from-emerald-50 to-teal-100 flex items-center justify-center relative">
+              <span className="text-5xl">{TIPO_EMOJI[im.tipo]||"🏘️"}</span>
+              {im.destaque && <span className="absolute top-2 right-2 bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-0.5 rounded-full">⭐ Destaque</span>}
+              <span className="absolute bottom-2 left-2"><Badge text={im.status} color={sc(im.status)} /></span>
+            </div>
+            <div className="p-4">
+              <h3 className="font-semibold text-gray-900 text-sm">{im.titulo}</h3>
+              <p className="text-xs text-gray-400 mt-0.5">📍 {im.bairro}, {im.cidade}</p>
+              <p className="text-emerald-700 font-bold mt-2">{im.valor}</p>
+              <div className="flex items-center gap-3 mt-2 pt-2 border-t border-gray-100 text-xs text-gray-500">
+                <span>📐 {im.area}</span>
+                {im.quartos>0&&<span>🛏 {im.quartos}</span>}
+                {im.banheiros>0&&<span>🚿 {im.banheiros}</span>}
+                {im.vagas>0&&<span>🚗 {im.vagas}</span>}
+              </div>
+              <p className="text-xs text-gray-400 mt-2">{im.proprietario}</p>
+            </div>
+          </div>
+        ))}
+        {fil.length===0&&<div className="col-span-3 text-center text-gray-400 py-16 text-sm">Nenhum imóvel encontrado</div>}
       </div>
     </div>
+  );
+}
 
-    <!-- GENERATE VIEW -->
-    <div id="content">
-      <div class="steps-row">
-        <div class="step-item">
-          <div class="step-dot done" id="s1"><i class="ti ti-check" style="font-size:11px"></i></div>
-          <span class="step-label active">Dados do imóvel</span>
-        </div>
-        <div class="step-line done"></div>
-        <div class="step-item">
-          <div class="step-dot active" id="s2">2</div>
-          <span class="step-label active">Plataformas</span>
-        </div>
-        <div class="step-line" id="l2"></div>
-        <div class="step-item">
-          <div class="step-dot" id="s3">3</div>
-          <span class="step-label" id="sl3">Resultado</span>
+// ─── AGENDA ───────────────────────────────────────────────────────────────────
+
+const T_ICON = { "Visita":"🏠","Reunião":"👥","Assinatura":"✍️","Avaliação":"📋" };
+
+function Agenda() {
+  const hoje = new Date().toISOString().slice(0,10);
+  const futuros = MOCK_AGENDA.filter(e=>e.data>=hoje).sort((a,b)=>a.data.localeCompare(b.data)||a.hora.localeCompare(b.hora));
+  const passados = MOCK_AGENDA.filter(e=>e.data<hoje);
+  return (
+    <div className="p-6 fade-in space-y-6">
+      <div>
+        <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Próximos Eventos</h2>
+        <div className="space-y-3">
+          {futuros.length===0&&<p className="text-gray-400 text-sm">Nenhum evento futuro agendado</p>}
+          {futuros.map(e=>(
+            <div key={e.id} className="bg-white rounded-xl border border-gray-200 p-4 flex gap-4 hover:shadow-sm transition-shadow">
+              <div className="text-center bg-emerald-50 rounded-xl p-3 min-w-14">
+                <p className="text-xs text-emerald-600 font-medium uppercase">{new Date(e.data+"T00:00").toLocaleDateString("pt-BR",{month:"short"})}</p>
+                <p className="text-xl font-bold text-emerald-800 leading-none mt-0.5">{e.data.slice(-2)}</p>
+                <p className="text-xs text-emerald-500 mt-1">{e.hora}</p>
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-lg">{T_ICON[e.tipo]||"📌"}</span>
+                  <span className="font-semibold text-gray-900 text-sm">{e.titulo}</span>
+                  <Badge text={e.status} color={sc(e.status)} />
+                </div>
+                <p className="text-xs text-gray-500 mt-1">👤 {e.contato} · 🏢 {e.imovel}</p>
+                <p className="text-xs text-gray-500">📍 {e.local}</p>
+                {e.notas&&<p className="text-xs text-gray-400 mt-1 italic">"{e.notas}"</p>}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
-
-      <div class="section-card">
-        <div class="section-header">
-          <i class="ti ti-home-2 section-icon"></i>
-          <span class="section-title">Dados do imóvel</span>
+      {passados.length>0&&(
+        <div>
+          <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Eventos Anteriores</h2>
+          <div className="space-y-2 opacity-60">
+            {passados.map(e=>(
+              <div key={e.id} className="bg-white rounded-lg border border-gray-100 p-3 flex items-center gap-3">
+                <span>{T_ICON[e.tipo]||"📌"}</span>
+                <div>
+                  <p className="text-sm font-medium text-gray-700">{e.titulo}</p>
+                  <p className="text-xs text-gray-400">{e.data} {e.hora}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-        <div class="section-body">
-          <div class="form-grid-3">
-            <div class="field"><label>Tipo</label><select id="tipo"><option>Apartamento</option><option>Casa</option><option>Cobertura</option><option>Studio</option><option>Sala Comercial</option><option>Terreno</option></select></div>
-            <div class="field"><label>Finalidade</label><select id="finalidade"><option>Venda</option><option>Aluguel</option></select></div>
-            <div class="field">
-              <label>Valor (R$)</label>
-              <input id="valor" type="text" placeholder="Ex: 1.200.000" oninput="formatValor(this)" autocomplete="off">
-              <span class="field-err" id="err-valor">Informe o valor do imóvel</span>
-            </div>
-          </div>
-          <div class="form-grid-2">
-            <div class="field">
-              <label>Cidade</label>
-              <input id="cidade" type="text" placeholder="Ex: São Paulo" list="cidades-list" oninput="clearErr('cidade');atualizarBairros()" autocomplete="off">
-              <span class="field-err" id="err-cidade">Informe a cidade</span>
-            </div>
-            <div class="field">
-              <label>Bairro</label>
-              <input id="bairro" type="text" placeholder="Ex: Jardins" list="bairros-list" oninput="clearErr('bairro')" autocomplete="off">
-              <span class="field-err" id="err-bairro">Informe o bairro</span>
-            </div>
-          </div>
-          <div class="form-grid-5">
-            <div class="field">
-              <label>Área m²</label>
-              <input id="area" type="text" placeholder="180" oninput="numericOnly(this);clearErr('area')" inputmode="numeric">
-              <span class="field-err" id="err-area">Informe a área</span>
-            </div>
-            <div class="field"><label>Quartos</label><input id="quartos" type="text" placeholder="4" oninput="numericOnly(this)" inputmode="numeric"></div>
-            <div class="field"><label>Suítes</label><input id="suites" type="text" placeholder="2" oninput="numericOnly(this)" inputmode="numeric"></div>
-            <div class="field"><label>Banheiros</label><input id="banheiros" type="text" placeholder="3" oninput="numericOnly(this)" inputmode="numeric"></div>
-            <div class="field"><label>Vagas</label><input id="vagas" type="text" placeholder="2" oninput="numericOnly(this)" inputmode="numeric"></div>
-          </div>
+      )}
+    </div>
+  );
+}
 
-          <datalist id="bairros-list"></datalist>
-          <datalist id="cidades-list">
-            <option value="São Paulo"><option value="Rio de Janeiro"><option value="Belo Horizonte">
-            <option value="Curitiba"><option value="Porto Alegre"><option value="Fortaleza"><option value="Salvador">
-            <option value="Recife"><option value="Manaus"><option value="Belém"><option value="Goiânia">
-            <option value="Florianópolis"><option value="Vitória"><option value="Natal"><option value="Maceió">
-            <option value="Campo Grande"><option value="Teresina"><option value="São Luís"><option value="Aracaju">
-            <option value="Macapá"><option value="Porto Velho"><option value="Rio Branco"><option value="Palmas">
-            <option value="Campinas"><option value="São Bernardo do Campo"><option value="Guarulhos"><option value="Osasco">
-            <option value="Santo André"><option value="Ribeirão Preto"><option value="Sorocaba"><option value="São José dos Campos">
-            <option value="Santos"><option value="Niterói"><option value="Petrópolis"><option value="Joinville">
-            <option value="Londrina"><option value="Maringá"><option value="Foz do Iguaçu"><option value="Caxias do Sul">
-          </datalist>
-          <div class="form-grid-2">
-            <div class="field" style="margin-top:14px">
-              <label>Diferenciais</label>
-              <textarea id="diferenciais" placeholder="Ex: varanda gourmet, vista panorâmica, recém reformado, piscina privativa..." maxlength="500" oninput="updateCounter()"></textarea>
-              <span class="char-counter" id="char-counter">0 / 500</span>
-            </div>
-            <div style="margin-top:14px">
-              <label style="font-size:11px;font-weight:600;color:var(--qa-gray-4);letter-spacing:0.06em;text-transform:uppercase;display:block;margin-bottom:6px">Tom de voz</label>
-              <div class="tone-grid">
-                <div class="tone-pill sel" onclick="selectTone(this,'sofisticado')"><span class="tone-name">Sofisticado</span><span class="tone-desc">Luxo e exclusividade</span></div>
-                <div class="tone-pill" onclick="selectTone(this,'direto')"><span class="tone-name">Direto</span><span class="tone-desc">Objetivo e claro</span></div>
-                <div class="tone-pill" onclick="selectTone(this,'caloroso')"><span class="tone-name">Caloroso</span><span class="tone-desc">Família e lar</span></div>
+// ─── ATENDIMENTOS ─────────────────────────────────────────────────────────────
+
+const AT_ICON = { "Ligação":"📞","Email":"📧","WhatsApp":"💬","Visita":"🏠","Reunião":"👥" };
+
+function Atendimentos() {
+  const [search, setSearch] = useState("");
+  const fil = MOCK_ATENDIMENTOS.filter(a=>
+    a.contato.toLowerCase().includes(search.toLowerCase()) ||
+    a.resumo.toLowerCase().includes(search.toLowerCase())
+  );
+  return (
+    <div className="p-6 fade-in">
+      <div className="flex items-center gap-3 mb-5">
+        <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Buscar atendimento..."
+          className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-64" />
+        <span className="text-sm text-gray-400 ml-auto">{fil.length} registros</span>
+      </div>
+      <div className="space-y-3">
+        {fil.map(a=>(
+          <div key={a.id} className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-sm transition-shadow">
+            <div className="flex items-start gap-3">
+              <span className="text-2xl">{AT_ICON[a.tipo]||"📋"}</span>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-semibold text-gray-900 text-sm">{a.contato}</span>
+                  <Badge text={a.tipo} color="blue" />
+                  <Badge text={a.status} color={sc(a.status)} />
+                  <span className="text-xs text-gray-400 ml-auto">{a.data} {a.hora}{a.duracao!=="–"?` · ${a.duracao}`:""}</span>
+                </div>
+                <p className="text-sm text-gray-700 mt-2">{a.resumo}</p>
+                {a.proximo&&<p className="text-xs text-emerald-600 mt-1.5 font-medium">→ Próximo: {a.proximo}</p>}
               </div>
             </div>
           </div>
-        </div>
-      </div>
-
-      <div class="section-card">
-        <div class="section-header">
-          <i class="ti ti-layout-grid section-icon"></i>
-          <span class="section-title">Plataformas de destino</span>
-        </div>
-        <div class="section-body">
-          <div class="platforms-grid">
-            <div class="platform-pill sel" data-pid="zap" onclick="togglePlatform(this)"><i class="ti ti-home"></i> Zap Imóveis</div>
-            <div class="platform-pill" data-pid="olx" onclick="togglePlatform(this)"><i class="ti ti-tag"></i> OLX</div>
-            <div class="platform-pill sel" data-pid="instagram" onclick="togglePlatform(this)"><i class="ti ti-camera"></i> Instagram</div>
-            <div class="platform-pill" data-pid="facebook" onclick="togglePlatform(this)"><i class="ti ti-users"></i> Facebook</div>
-            <div class="platform-pill sel" data-pid="whatsapp" onclick="togglePlatform(this)"><i class="ti ti-message-circle"></i> WhatsApp</div>
-            <div class="platform-pill" data-pid="tiktok" onclick="togglePlatform(this)"><i class="ti ti-music"></i> TikTok</div>
-          </div>
-        </div>
-      </div>
-
-      <div id="error-msg"><i class="ti ti-alert-circle"></i><span id="error-text"></span></div>
-      <div id="loading"><div class="spinner"></div><span class="loading-text">Gerando anúncios com IA...</span></div>
-
-      <div id="results">
-        <div class="results-header">
-          <span class="results-title">Anúncios gerados</span>
-          <div class="results-header-right">
-            <div class="success-badge"><i class="ti ti-check" style="font-size:13px"></i><span id="result-count">3 plataformas</span></div>
-            <button class="btn-ghost" id="regen-btn" onclick="generate()"><i class="ti ti-refresh"></i> Regenerar</button>
-          </div>
-        </div>
-        <div class="section-card">
-          <div class="result-tabs" id="result-tabs"></div>
-          <div id="result-panels"></div>
-        </div>
+        ))}
+        {fil.length===0&&<p className="text-center text-gray-400 py-12 text-sm">Nenhum atendimento encontrado</p>}
       </div>
     </div>
+  );
+}
 
-    <!-- HISTORY VIEW -->
-    <div id="history-view">
-      <div class="history-toolbar">
-        <span class="history-title">Histórico</span>
-        <button class="btn-ghost" id="clear-history-btn" onclick="clearHistory()" style="display:none"><i class="ti ti-trash"></i> Limpar tudo</button>
+// ─── NOTIFICAÇÕES ─────────────────────────────────────────────────────────────
+
+const N_ICON = { lead:"👥",agenda:"📅",proposta:"💰",sistema:"⚙️" };
+
+function Notificacoes({ notifs, setNotifs }) {
+  return (
+    <div className="p-6 fade-in">
+      <div className="flex items-center justify-between mb-5">
+        <h2 className="font-semibold text-gray-900">Notificações</h2>
+        <button onClick={()=>setNotifs(notifs.map(n=>({...n,lida:true})))}
+          className="text-sm text-emerald-600 hover:text-emerald-700 font-medium">
+          Marcar todas como lidas
+        </button>
       </div>
-      <div id="history-list"></div>
-    </div>
-  </div>
-</div>
-
-<script>
-  let tone = 'sofisticado';
-  let lastResults = {};
-  let lastFormData = {};
-
-  const PLATFORM_ICONS  = { zap:'ti-home', olx:'ti-tag', instagram:'ti-camera', facebook:'ti-users', whatsapp:'ti-message-circle', tiktok:'ti-music' };
-  const PLATFORM_LABELS = { zap:'Zap Imóveis', olx:'OLX', instagram:'Instagram', facebook:'Facebook', whatsapp:'WhatsApp', tiktok:'TikTok' };
-  const FIELD_LABELS    = { titulo:'Título', descricao:'Descrição', legenda:'Legenda', hashtags:'Hashtags', feed:'Post no feed', grupo:'Post em grupos', mensagem:'Mensagem', roteiro:'Roteiro do vídeo' };
-
-  /* ── Mobile sidebar ── */
-  function toggleSidebar() {
-    document.getElementById('sidebar').classList.toggle('open');
-    document.getElementById('overlay').classList.toggle('show');
-  }
-  function closeSidebar() {
-    document.getElementById('sidebar').classList.remove('open');
-    document.getElementById('overlay').classList.remove('show');
-  }
-
-  /* ── View switching ── */
-  function showView(view) {
-    const isGerar = view === 'gerar';
-    document.getElementById('content').style.display = isGerar ? 'flex' : 'none';
-    document.getElementById('history-view').classList.toggle('show', !isGerar);
-    document.getElementById('nav-gerar').classList.toggle('active', isGerar);
-    document.getElementById('nav-historico').classList.toggle('active', !isGerar);
-    document.getElementById('topbar-title').textContent = isGerar ? 'Novo anúncio' : 'Histórico';
-    document.getElementById('topbar-actions').style.display = isGerar ? 'flex' : 'none';
-    if (!isGerar) renderHistory();
-    closeSidebar();
-  }
-
-  /* ── Tone ── */
-  function selectTone(el, t) {
-    document.querySelectorAll('.tone-pill').forEach(p => p.classList.remove('sel'));
-    el.classList.add('sel');
-    tone = t;
-  }
-
-  /* ── Platforms ── */
-  function togglePlatform(el) { el.classList.toggle('sel'); }
-  function getSelectedPlatforms() { return [...document.querySelectorAll('.platform-pill.sel')].map(el => el.dataset.pid); }
-
-  /* ── Character counter ── */
-  function updateCounter() {
-    const len = document.getElementById('diferenciais').value.length;
-    const el  = document.getElementById('char-counter');
-    el.textContent = `${len} / 500`;
-    el.className = 'char-counter' + (len >= 500 ? ' over' : len >= 450 ? ' warn' : '');
-  }
-
-  /* ── Field helpers ── */
-  function numericOnly(input) {
-    input.value = input.value.replace(/\D/g, '');
-  }
-
-  function formatValor(input) {
-    let digits = input.value.replace(/\D/g, '');
-    if (digits) {
-      input.value = parseInt(digits, 10).toLocaleString('pt-BR');
-    } else {
-      input.value = '';
-    }
-    clearErr('valor');
-  }
-
-  /* ── Bairros por cidade ── */
-  const BAIRROS = {
-    'São Paulo':           ['Jardins','Moema','Vila Olímpia','Itaim Bibi','Pinheiros','Vila Madalena','Perdizes','Higienópolis','Brooklin','Morumbi','Campo Belo','Paraíso','Bela Vista','Vila Mariana','Santana','Lapa','Barra Funda','Ipiranga','Tatuapé','Mooca','Aclimação','Liberdade','Santa Cecília','Consolação'],
-    'Rio de Janeiro':      ['Ipanema','Leblon','Copacabana','Barra da Tijuca','Botafogo','Flamengo','Lagoa','Tijuca','Santa Teresa','Recreio','Jacarepaguá','Urca','Gávea','São Conrado','Humaitá','Catete','Glória'],
-    'Belo Horizonte':      ['Lourdes','Savassi','Funcionários','Santa Efigênia','Buritis','Belvedere','Mangabeiras','Pampulha','Anchieta','Sion','Gutierrez','Serra','Santo Antônio'],
-    'Curitiba':            ['Batel','Água Verde','Bigorrilho','Ecoville','Alto da Glória','Juvevê','Cabral','Mercês','Champagnat','Centro Cívico','Hugo Lange','Rebouças'],
-    'Fortaleza':           ['Meireles','Aldeota','Cocó','Varjota','Dionísio Torres','Mucuripe','Papicu','Benfica','Guararapes','De Lourdes'],
-    'Porto Alegre':        ['Moinhos de Vento','Bela Vista','Menino Deus','Rio Branco','Petrópolis','Auxiliadora','Boa Vista','Mont Serrat','Independência','Floresta'],
-    'Salvador':            ['Barra','Vitória','Graça','Ondina','Rio Vermelho','Pituba','Costa Azul','Itaigara','Caminho das Árvores','Horto Florestal'],
-    'Recife':              ['Boa Viagem','Graças','Casa Forte','Espinheiro','Aflitos','Parnamirim','Derby','Tamarineira','Ilha do Leite','Madalena'],
-    'Florianópolis':       ['Trindade','Agronômica','Itacorubi','Córrego Grande','Jurerê','Lagoa da Conceição','Ingleses','Coqueiros','Estreito','Centro'],
-    'Campinas':            ['Cambuí','Bosque','Nova Campinas','Taquaral','Jardim Guanabara','Barão Geraldo','Jardim das Flores','Chácara da Barra'],
-    'Goiânia':             ['Setor Bueno','Setor Marista','Setor Oeste','Jardim Goiás','Setor Sul','Aldeota','Setor Universitário'],
-    'Manaus':              ['Adrianópolis','Aleixo','Ponta Negra','Chapada','Nossa Senhora das Graças','Parque Dez'],
-    'Natal':               ['Ponta Negra','Capim Macio','Lagoa Nova','Petrópolis','Tirol','Candelária'],
-    'Vitória':             ['Praia do Canto','Bento Ferreira','Jardim da Penha','Mata da Praia','Enseada do Suá','Santa Lúcia'],
-    'Joinville':           ['América','Atiradores','Boa Vista','Centro','Costa e Silva','Glória'],
-    'Londrina':            ['Gleba Palhano','Centro','Jardim Shangri-lá','Higienópolis','Centro Cívico'],
-  };
-
-  function atualizarBairros() {
-    const cidade   = document.getElementById('cidade').value.trim();
-    const datalist = document.getElementById('bairros-list');
-    const bairros  = BAIRROS[cidade] || [];
-    datalist.innerHTML = bairros.map(b => `<option value="${b}">`).join('');
-  }
-
-  function clearErr(id) {
-    const el = document.getElementById(id);
-    if (el) el.classList.remove('err');
-    const err = document.getElementById('err-' + id);
-    if (err) err.classList.remove('show');
-  }
-
-  function markErr(id) {
-    const el = document.getElementById(id);
-    if (el) el.classList.add('err');
-    const err = document.getElementById('err-' + id);
-    if (err) err.classList.add('show');
-  }
-
-  /* ── Global error banner ── */
-  function showError(msg) {
-    document.getElementById('error-text').textContent = msg;
-    document.getElementById('error-msg').classList.add('show');
-  }
-  function hideError() { document.getElementById('error-msg').classList.remove('show'); }
-
-  /* ── Clear ── */
-  function clearForm() {
-    ['bairro','cidade','valor','area','quartos','suites','banheiros','vagas','diferenciais']
-      .forEach(id => { document.getElementById(id).value = ''; clearErr(id); });
-    document.getElementById('results').classList.remove('show');
-    document.getElementById('loading').classList.remove('show');
-    hideError();
-    updateCounter();
-    resetStep3();
-  }
-  function resetStep3() {
-    const dot = document.getElementById('s3');
-    dot.className = 'step-dot';
-    dot.textContent = '3';
-    document.getElementById('sl3').classList.remove('active');
-    document.getElementById('l2').classList.remove('done');
-  }
-
-  /* ── Copy ── */
-  function copyText(btn, text) {
-    navigator.clipboard.writeText(text).then(() => {
-      btn.classList.add('copied');
-      btn.innerHTML = '<i class="ti ti-check" style="font-size:13px"></i> Copiado';
-      setTimeout(() => {
-        btn.classList.remove('copied');
-        btn.innerHTML = '<i class="ti ti-copy" style="font-size:13px"></i> Copiar';
-      }, 2000);
-    });
-  }
-
-  function copyAll(btn, pid) {
-    const data = lastResults[pid];
-    if (!data) return;
-    const text = Object.entries(data).map(([k, v]) => `${FIELD_LABELS[k] || k}:\n${v}`).join('\n\n');
-    navigator.clipboard.writeText(text).then(() => {
-      btn.classList.add('copied');
-      btn.innerHTML = '<i class="ti ti-check" style="font-size:13px"></i> Tudo copiado';
-      setTimeout(() => {
-        btn.classList.remove('copied');
-        btn.innerHTML = '<i class="ti ti-copy" style="font-size:13px"></i> Copiar tudo';
-      }, 2000);
-    });
-  }
-
-  /* ── History ── */
-  const HISTORY_KEY = 'poplar_history';
-  const MAX_HISTORY = 20;
-
-  function getHistory() {
-    try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); } catch { return []; }
-  }
-
-  function saveToHistory(formData, platforms, result) {
-    const hist = getHistory();
-    hist.unshift({ id: Date.now(), ts: new Date().toISOString(), formData, platforms, result });
-    if (hist.length > MAX_HISTORY) hist.pop();
-    localStorage.setItem(HISTORY_KEY, JSON.stringify(hist));
-  }
-
-  function deleteEntry(id) {
-    localStorage.setItem(HISTORY_KEY, JSON.stringify(getHistory().filter(e => e.id !== id)));
-    renderHistory();
-  }
-
-  function clearHistory() {
-    if (!confirm('Apagar todo o histórico?')) return;
-    localStorage.removeItem(HISTORY_KEY);
-    renderHistory();
-  }
-
-  function formatDate(iso) {
-    const d = new Date(iso);
-    return d.toLocaleDateString('pt-BR', { day:'2-digit', month:'short', year:'numeric' })
-      + ' às ' + d.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
-  }
-
-  function toggleHistoryCard(id) {
-    const body = document.getElementById('hbody-' + id);
-    const btn  = document.getElementById('hbtn-' + id);
-    const open = body.classList.toggle('open');
-    btn.innerHTML = open
-      ? '<i class="ti ti-chevron-up"></i> Fechar'
-      : '<i class="ti ti-chevron-down"></i> Ver';
-  }
-
-  function renderHistory() {
-    const hist      = getHistory();
-    const container = document.getElementById('history-list');
-    const clearBtn  = document.getElementById('clear-history-btn');
-    clearBtn.style.display = hist.length ? 'flex' : 'none';
-
-    if (!hist.length) {
-      container.innerHTML = `<div class="history-empty"><i class="ti ti-clock-off"></i>Nenhuma geração salva ainda.<br>Gere seu primeiro anúncio!</div>`;
-      return;
-    }
-
-    container.innerHTML = hist.map(entry => {
-      const f     = entry.formData;
-      const tags  = entry.platforms.map(p => `<span class="history-platform-tag">${PLATFORM_LABELS[p] || p}</span>`).join('');
-      const body  = entry.platforms.map(pid => {
-        if (!entry.result[pid]) return '';
-        const fields = Object.entries(entry.result[pid]).map(([k, v]) => `
-          <div class="history-field">
-            <div class="history-field-label">${FIELD_LABELS[k] || k}</div>
-            <div class="history-field-text">${escHtml(v)}</div>
-          </div>`).join('');
-        return `<div class="history-platform-section">
-          <div class="history-platform-label"><i class="ti ${PLATFORM_ICONS[pid] || 'ti-circle'}"></i> ${PLATFORM_LABELS[pid] || pid}</div>
-          ${fields}
-        </div>`;
-      }).join('');
-
-      return `
-        <div class="history-card">
-          <div class="history-card-header">
-            <div class="history-card-info">
-              <div class="history-card-title">${escHtml(f.tipo)} • ${escHtml(f.bairro)}, ${escHtml(f.cidade)}</div>
-              <div class="history-card-meta">${escHtml(f.finalidade)} · R$ ${escHtml(f.valor)} · ${escHtml(f.area)}m² · ${formatDate(entry.ts)}</div>
-              <div class="history-card-platforms">${tags}</div>
-            </div>
-            <div class="history-card-actions">
-              <button class="btn-sm" id="hbtn-${entry.id}" onclick="toggleHistoryCard(${entry.id})"><i class="ti ti-chevron-down"></i> Ver</button>
-              <button class="btn-sm-danger" onclick="deleteEntry(${entry.id})"><i class="ti ti-trash"></i></button>
+      <div className="space-y-2">
+        {notifs.map(n=>(
+          <div key={n.id} onClick={()=>setNotifs(notifs.map(x=>x.id===n.id?{...x,lida:true}:x))}
+            className={`bg-white rounded-xl border p-4 cursor-pointer hover:shadow-sm transition-all ${n.lida?"border-gray-100 opacity-65":"border-emerald-200"}`}>
+            <div className="flex items-start gap-3">
+              <span className="text-xl">{N_ICON[n.tipo]||"🔔"}</span>
+              <div className="flex-1">
+                <div className="flex items-center justify-between">
+                  <p className="font-medium text-gray-900 text-sm">{n.titulo}</p>
+                  {!n.lida&&<span className="w-2 h-2 bg-emerald-500 rounded-full flex-shrink-0"></span>}
+                </div>
+                <p className="text-sm text-gray-600 mt-0.5">{n.mensagem}</p>
+                <p className="text-xs text-gray-400 mt-1">{n.data}</p>
+              </div>
             </div>
           </div>
-          <div class="history-body" id="hbody-${entry.id}">${body}</div>
-        </div>`;
-    }).join('');
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── GERAR ANÚNCIO ────────────────────────────────────────────────────────────
+
+function GerarAnuncio() {
+  const [form, setForm] = useState({
+    tipo:"Apartamento", cidade:"São Paulo", bairro:"", quartos:"3", banheiros:"2", vagas:"1",
+    area:"", valor:"", diferenciais:"", tom:"profissional", plataforma:"Instagram"
+  });
+  const [result, setResult] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState("");
+  const [copied, setCopied] = useState(false);
+  const [bairroErr, setBairroErr] = useState(false);
+
+  const bairros = CIDADES_BAIRROS[form.cidade] || [];
+
+  function sf(k,v) {
+    if (k==="cidade") setForm(f=>({...f,cidade:v,bairro:""}));
+    else setForm(f=>({...f,[k]:v}));
   }
 
-  function escHtml(str) {
-    return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
-
-  /* ── Prompt ── */
-  function buildPrompt(f, platforms) {
-    return `Você é um especialista em copywriting imobiliário brasileiro. Gere anúncios otimizados para cada plataforma com base nos dados abaixo.\n\nDADOS DO IMÓVEL:\n- Tipo: ${f.tipo}\n- Finalidade: ${f.finalidade}\n- Localização: ${f.bairro}, ${f.cidade}\n- Valor: R$ ${f.valor}\n- Área: ${f.area}m²\n- Quartos: ${f.quartos} | Suítes: ${f.suites} | Banheiros: ${f.banheiros}\n- Vagas: ${f.vagas}\n- Diferenciais: ${f.diferenciais}\n- Tom de voz: ${f.tom}\n\nPLATAFORMAS: ${platforms.join(', ')}\n\nREGRAS:\n- Linguagem natural e persuasiva\n- Adapte ao tom de voz\n- Não invente informações\n- Redes sociais: emojis estratégicos\n- WhatsApp: breve e com urgência sutil\n- TikTok: roteiro de 15-30s com gancho, desenvolvimento e CTA\n\nRetorne APENAS JSON válido, sem markdown:\n{"zap":{"titulo":"...","descricao":"..."},"olx":{"titulo":"...","descricao":"..."},"instagram":{"legenda":"...","hashtags":"..."},"facebook":{"feed":"...","grupo":"..."},"whatsapp":{"mensagem":"..."},"tiktok":{"roteiro":"...","legenda":"...","hashtags":"..."}}\nInclua apenas as plataformas solicitadas.`;
-  }
-
-  /* ── Render results ── */
-  function renderResults(data, platforms) {
-    lastResults = data;
-    const tabsEl   = document.getElementById('result-tabs');
-    const panelsEl = document.getElementById('result-panels');
-    tabsEl.innerHTML = ''; panelsEl.innerHTML = '';
-
-    platforms.forEach((pid, i) => {
-      if (!data[pid]) return;
-
-      // Tab
-      const tab = document.createElement('button');
-      tab.className = 'result-tab' + (i === 0 ? ' active' : '');
-      tab.innerHTML = `<i class="ti ${PLATFORM_ICONS[pid]}"></i> ${PLATFORM_LABELS[pid]}`;
-      tab.onclick = () => {
-        document.querySelectorAll('.result-tab').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('.result-panel').forEach(p => p.classList.remove('show'));
-        tab.classList.add('active');
-        document.getElementById('panel-' + pid).classList.add('show');
-      };
-      tabsEl.appendChild(tab);
-
-      // Panel
-      const panel = document.createElement('div');
-      panel.className = 'result-panel' + (i === 0 ? ' show' : '');
-      panel.id = 'panel-' + pid;
-
-      // Copy-all button
-      const actionsRow = document.createElement('div');
-      actionsRow.className = 'result-panel-actions';
-      const copyAllBtn = document.createElement('button');
-      copyAllBtn.className = 'copy-all-btn';
-      copyAllBtn.innerHTML = '<i class="ti ti-copy" style="font-size:13px"></i> Copiar tudo';
-      copyAllBtn.onclick = () => copyAll(copyAllBtn, pid);
-      actionsRow.appendChild(copyAllBtn);
-      panel.appendChild(actionsRow);
-
-      // Fields
-      Object.entries(data[pid]).forEach(([key, val]) => {
-        const fieldDiv = document.createElement('div');
-        fieldDiv.className = 'result-field';
-
-        const header = document.createElement('div');
-        header.className = 'result-field-header';
-
-        const labelSpan = document.createElement('span');
-        labelSpan.className = 'result-field-label';
-        labelSpan.textContent = FIELD_LABELS[key] || key;
-
-        const copyBtn = document.createElement('button');
-        copyBtn.className = 'copy-btn';
-        copyBtn.innerHTML = '<i class="ti ti-copy" style="font-size:13px"></i> Copiar';
-        copyBtn.onclick = () => copyText(copyBtn, val);
-
-        header.appendChild(labelSpan);
-        header.appendChild(copyBtn);
-
-        const textDiv = document.createElement('div');
-        textDiv.className = 'result-text';
-        textDiv.textContent = val;
-
-        fieldDiv.appendChild(header);
-        fieldDiv.appendChild(textDiv);
-        panel.appendChild(fieldDiv);
-      });
-
-      panelsEl.appendChild(panel);
-    });
-
-    document.getElementById('result-count').textContent = `${platforms.length} plataforma${platforms.length > 1 ? 's' : ''}`;
-  }
-
-  /* ── Generate ── */
-  async function generate() {
-    hideError();
-    const bairro    = document.getElementById('bairro').value.trim();
-    const cidade    = document.getElementById('cidade').value.trim();
-    const valor     = document.getElementById('valor').value.trim();
-    const area      = document.getElementById('area').value.trim();
-    const platforms = getSelectedPlatforms();
-
-    let hasErr = false;
-    if (!bairro) { markErr('bairro'); hasErr = true; } else { clearErr('bairro'); }
-    if (!cidade) { markErr('cidade'); hasErr = true; } else { clearErr('cidade'); }
-    if (!valor)  { markErr('valor');  hasErr = true; } else { clearErr('valor'); }
-    if (!area)   { markErr('area');   hasErr = true; } else { clearErr('area'); }
-    if (hasErr) return;
-    if (!platforms.length) { showError('Selecione pelo menos uma plataforma.'); return; }
-
-    lastFormData = {
-      tipo:        document.getElementById('tipo').value,
-      finalidade:  document.getElementById('finalidade').value,
-      bairro, cidade, valor, area,
-      quartos:     document.getElementById('quartos').value  || '—',
-      suites:      document.getElementById('suites').value   || '—',
-      banheiros:   document.getElementById('banheiros').value|| '—',
-      vagas:       document.getElementById('vagas').value    || '—',
-      diferenciais:document.getElementById('diferenciais').value || 'Não informado',
-      tom: tone
-    };
-
-    document.getElementById('results').classList.remove('show');
-    document.getElementById('loading').classList.add('show');
-    document.getElementById('gen-btn').disabled = true;
-    document.getElementById('regen-btn').disabled = true;
-
-    const dot = document.getElementById('s3');
-    dot.className = 'step-dot active';
-    dot.textContent = '3';
-    document.getElementById('sl3').classList.add('active');
-    document.getElementById('l2').classList.add('done');
-
+  async function gerar(e) {
+    e.preventDefault();
+    if (!form.bairro.trim()) { setBairroErr(true); return; }
+    setBairroErr(false); setErr(""); setLoading(true); setResult(null);
     try {
-      const res  = await fetch('/api/gerar', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: buildPrompt(lastFormData, platforms) })
-      });
-
-      const raw = await res.text();
+      const res = await fetch("/api/gerar",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(form)});
+      const txt = await res.text();
       let data;
-      try { data = JSON.parse(raw); } catch { throw new Error(`Resposta inesperada do servidor (${res.status})`); }
-      if (!res.ok) throw new Error(data.error || `Erro ${res.status}`);
+      try { data = JSON.parse(txt); }
+      catch { const m=txt.match(/\{[\s\S]*\}/); if(m) data=JSON.parse(m[0]); else throw new Error(txt.slice(0,120)); }
+      if (data.error) throw new Error(data.error);
+      setResult(data);
+    } catch(ex) { setErr("Erro: "+ex.message); }
+    finally { setLoading(false); }
+  }
 
-      const text = data.text || '';
-      const jsonMatch = text.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) throw new Error('A IA não retornou um formato válido. Tente novamente.');
-      const parsed = JSON.parse(jsonMatch[0]);
-      renderResults(parsed, platforms);
-      saveToHistory(lastFormData, platforms, parsed);
+  function copy() {
+    if (!result) return;
+    navigator.clipboard.writeText(result.anuncio||"");
+    setCopied(true); setTimeout(()=>setCopied(false),2000);
+  }
 
-      document.getElementById('results').classList.add('show');
-      dot.className = 'step-dot done';
-      dot.innerHTML = '<i class="ti ti-check" style="font-size:11px"></i>';
+  return (
+    <div className="p-6 fade-in max-w-2xl">
+      <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <p className="text-sm text-gray-500 mb-5">Preencha os dados do imóvel e gere um anúncio profissional automaticamente.</p>
+        <form onSubmit={gerar} className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Tipo</label>
+              <select value={form.tipo} onChange={e=>sf("tipo",e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                {["Apartamento","Casa","Studio","Cobertura","Terreno","Sala Comercial","Loja"].map(t=><option key={t}>{t}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Cidade</label>
+              <select value={form.cidade} onChange={e=>sf("cidade",e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                {CIDADES.map(c=><option key={c}>{c}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">
+                Bairro {bairroErr&&<span className="text-red-500 ml-1">*obrigatório</span>}
+              </label>
+              <input value={form.bairro} onChange={e=>{sf("bairro",e.target.value);setBairroErr(false);}}
+                list="bl" placeholder="Digite ou selecione"
+                className={`w-full border rounded-lg px-3 py-2 text-sm ${bairroErr?"border-red-400 bg-red-50":"border-gray-300"}`} />
+              <datalist id="bl">{bairros.map(b=><option key={b} value={b}/>)}</datalist>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Área (m²)</label>
+              <input value={form.area} onChange={e=>sf("area",e.target.value.replace(/\D/g,""))}
+                placeholder="Ex: 85" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+            </div>
+            {["quartos","banheiros","vagas"].map(f=>(
+              <div key={f}>
+                <label className="block text-xs font-medium text-gray-600 mb-1 capitalize">{f}</label>
+                <select value={form[f]} onChange={e=>sf(f,e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                  {["0","1","2","3","4","5+"].map(n=><option key={n}>{n}</option>)}
+                </select>
+              </div>
+            ))}
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Valor</label>
+              <input value={form.valor} onChange={e=>sf("valor",e.target.value)}
+                placeholder="Ex: 850.000" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Tom</label>
+              <select value={form.tom} onChange={e=>sf("tom",e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                {["profissional","descontraído","luxuoso","acessível","urgente"].map(t=><option key={t}>{t}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Plataforma</label>
+              <select value={form.plataforma} onChange={e=>sf("plataforma",e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                {["Instagram","Facebook","WhatsApp","OLX","ZAP Imóveis","Viva Real","Site"].map(p=><option key={p}>{p}</option>)}
+              </select>
+            </div>
+            <div className="col-span-2">
+              <label className="block text-xs font-medium text-gray-600 mb-1">Diferenciais</label>
+              <input value={form.diferenciais} onChange={e=>sf("diferenciais",e.target.value)}
+                placeholder="Ex: piscina, churrasqueira, vista para o mar, recém reformado..."
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+            </div>
+          </div>
+          {err&&<p className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg p-3">{err}</p>}
+          <button type="submit" disabled={loading}
+            className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-semibold py-2.5 rounded-lg transition-colors text-sm">
+            {loading?"✨ Gerando anúncio...":"✨ Gerar Anúncio com IA"}
+          </button>
+        </form>
+      </div>
+      {result&&(
+        <div className="mt-4 bg-white rounded-xl border border-emerald-200 p-6">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-semibold text-gray-900">Anúncio Gerado</h3>
+            <button onClick={copy}
+              className={`text-sm px-3 py-1.5 rounded-lg font-medium transition-colors ${copied?"bg-green-100 text-green-700":"bg-gray-100 text-gray-700 hover:bg-gray-200"}`}>
+              {copied?"✓ Copiado!":"📋 Copiar"}
+            </button>
+          </div>
+          <div className="bg-gray-50 rounded-lg p-4 whitespace-pre-wrap text-sm text-gray-800 leading-relaxed border border-gray-100">
+            {result.anuncio}
+          </div>
+          {result.hashtags&&<p className="text-sm text-emerald-600 mt-3">{result.hashtags}</p>}
+          {result.dica&&
+            <div className="mt-3 bg-blue-50 border border-blue-100 rounded-lg p-3">
+              <p className="text-xs text-blue-700">💡 {result.dica}</p>
+            </div>}
+        </div>
+      )}
+    </div>
+  );
+}
 
-    } catch (e) {
-      const isNetwork = e.message === 'Failed to fetch' || e.message === 'NetworkError when attempting to fetch resource.';
-      showError(isNetwork
-        ? 'Sem conexão. Verifique sua internet e tente novamente.'
-        : `Erro: ${e.message}`
-      );
-      resetStep3();
-    } finally {
-      document.getElementById('loading').classList.remove('show');
-      document.getElementById('gen-btn').disabled = false;
-      document.getElementById('regen-btn').disabled = false;
+// ─── APP ROOT ─────────────────────────────────────────────────────────────────
+
+function App() {
+  const [user, setUser]     = useState(null);
+  const [view, setView]     = useState("dashboard");
+  const [col, setCol]       = useState(false);
+  const [leads, setLeads]   = useState(MOCK_LEADS);
+  const [contatos]          = useState(MOCK_CONTATOS);
+  const [imoveis]           = useState(MOCK_IMOVEIS);
+  const [notifs, setNotifs] = useState(MOCK_NOTIFS);
+
+  const naoLidas = notifs.filter(n=>!n.lida).length;
+
+  if (!user) return <Login onLogin={setUser} />;
+
+  function renderView() {
+    switch(view) {
+      case "dashboard":    return <Dashboard leads={leads} imoveis={imoveis} />;
+      case "leads":        return <LeadsKanban leads={leads} setLeads={setLeads} />;
+      case "contatos":     return <Contatos contatos={contatos} />;
+      case "imoveis":      return <Imoveis imoveis={imoveis} />;
+      case "agenda":       return <Agenda />;
+      case "atendimentos": return <Atendimentos />;
+      case "anuncio":      return <GerarAnuncio />;
+      case "notificacoes": return <Notificacoes notifs={notifs} setNotifs={setNotifs} />;
+      default: return null;
     }
   }
+
+  return (
+    <div className="flex h-screen overflow-hidden bg-gray-50">
+      <Sidebar view={view} setView={setView} user={user} naoLidas={naoLidas} col={col} setCol={setCol} />
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <Topbar view={view} naoLidas={naoLidas} setView={setView} onLogout={()=>setUser(null)} />
+        <main className="flex-1 overflow-y-auto">{renderView()}</main>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
 </script>
 </body>
 </html>

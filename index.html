@@ -112,6 +112,9 @@
     .char-counter { font-size: 11px; color: var(--qa-gray-4); text-align: right; }
     .char-counter.warn { color: #C67C0A; }
     .char-counter.over { color: var(--qa-red); }
+    .field input.err, .field select.err, .field textarea.err { border-color: var(--qa-red) !important; background: #FEF8F8; }
+    .field-err { font-size: 11px; color: var(--qa-red); margin-top: 2px; display: none; }
+    .field-err.show { display: block; }
 
     /* PLATFORMS */
     .platforms-grid { display: flex; flex-wrap: wrap; gap: 10px; }
@@ -281,19 +284,60 @@
           <div class="form-grid-3">
             <div class="field"><label>Tipo</label><select id="tipo"><option>Apartamento</option><option>Casa</option><option>Cobertura</option><option>Studio</option><option>Sala Comercial</option><option>Terreno</option></select></div>
             <div class="field"><label>Finalidade</label><select id="finalidade"><option>Venda</option><option>Aluguel</option></select></div>
-            <div class="field"><label>Valor (R$)</label><input id="valor" type="text" placeholder="Ex: 1.200.000"></div>
+            <div class="field">
+              <label>Valor (R$)</label>
+              <input id="valor" type="text" placeholder="Ex: 1.200.000" oninput="formatValor(this)" autocomplete="off">
+              <span class="field-err" id="err-valor">Informe o valor do imóvel</span>
+            </div>
           </div>
           <div class="form-grid-2">
-            <div class="field"><label>Bairro</label><input id="bairro" type="text" placeholder="Ex: Jardins"></div>
-            <div class="field"><label>Cidade</label><input id="cidade" type="text" placeholder="Ex: São Paulo"></div>
+            <div class="field">
+              <label>Bairro</label>
+              <input id="bairro" type="text" placeholder="Ex: Jardins" list="bairros-list" oninput="clearErr('bairro')" autocomplete="off">
+              <span class="field-err" id="err-bairro">Informe o bairro</span>
+            </div>
+            <div class="field">
+              <label>Cidade</label>
+              <input id="cidade" type="text" placeholder="Ex: São Paulo" list="cidades-list" oninput="clearErr('cidade')" autocomplete="off">
+              <span class="field-err" id="err-cidade">Informe a cidade</span>
+            </div>
           </div>
           <div class="form-grid-5">
-            <div class="field"><label>Área m²</label><input id="area" type="text" placeholder="180"></div>
-            <div class="field"><label>Quartos</label><input id="quartos" type="text" placeholder="4"></div>
-            <div class="field"><label>Suítes</label><input id="suites" type="text" placeholder="2"></div>
-            <div class="field"><label>Banheiros</label><input id="banheiros" type="text" placeholder="3"></div>
-            <div class="field"><label>Vagas</label><input id="vagas" type="text" placeholder="2"></div>
+            <div class="field">
+              <label>Área m²</label>
+              <input id="area" type="text" placeholder="180" oninput="numericOnly(this);clearErr('area')" inputmode="numeric">
+              <span class="field-err" id="err-area">Informe a área</span>
+            </div>
+            <div class="field"><label>Quartos</label><input id="quartos" type="text" placeholder="4" oninput="numericOnly(this)" inputmode="numeric"></div>
+            <div class="field"><label>Suítes</label><input id="suites" type="text" placeholder="2" oninput="numericOnly(this)" inputmode="numeric"></div>
+            <div class="field"><label>Banheiros</label><input id="banheiros" type="text" placeholder="3" oninput="numericOnly(this)" inputmode="numeric"></div>
+            <div class="field"><label>Vagas</label><input id="vagas" type="text" placeholder="2" oninput="numericOnly(this)" inputmode="numeric"></div>
           </div>
+
+          <datalist id="bairros-list">
+            <option value="Jardins"><option value="Moema"><option value="Vila Olímpia"><option value="Itaim Bibi">
+            <option value="Pinheiros"><option value="Vila Madalena"><option value="Perdizes"><option value="Higienópolis">
+            <option value="Brooklin"><option value="Morumbi"><option value="Santo André"><option value="Alphaville">
+            <option value="Barra Funda"><option value="Lapa"><option value="Santana"><option value="Vila Mariana">
+            <option value="Ipiranga"><option value="Campo Belo"><option value="Paraíso"><option value="Bela Vista">
+            <option value="Ipanema"><option value="Leblon"><option value="Copacabana"><option value="Barra da Tijuca">
+            <option value="Botafogo"><option value="Flamengo"><option value="Lagoa"><option value="Tijuca">
+            <option value="Lourdes"><option value="Savassi"><option value="Funcionários"><option value="Santa Efigênia">
+            <option value="Meireles"><option value="Aldeota"><option value="Cocó"><option value="Varjota">
+            <option value="Batel"><option value="Água Verde"><option value="Bigorrilho"><option value="Ecoville">
+          </datalist>
+          <datalist id="cidades-list">
+            <option value="São Paulo"><option value="Rio de Janeiro"><option value="Belo Horizonte">
+            <option value="Curitiba"><option value="Porto Alegre"><option value="Fortaleza"><option value="Salvador">
+            <option value="Recife"><option value="Manaus"><option value="Belém"><option value="Goiânia">
+            <option value="Florianópolis"><option value="Vitória"><option value="Natal"><option value="Maceió">
+            <option value="Campo Grande"><option value="Teresina"><option value="São Luís"><option value="Aracaju">
+            <option value="Macapá"><option value="Porto Velho"><option value="Rio Branco"><option value="Palmas">
+            <option value="Campinas"><option value="São Bernardo do Campo"><option value="Guarulhos"><option value="Osasco">
+            <option value="Santo André"><option value="Ribeirão Preto"><option value="Sorocaba"><option value="São José dos Campos">
+            <option value="Santos"><option value="Niterói"><option value="Petrópolis"><option value="Joinville">
+            <option value="Londrina"><option value="Maringá"><option value="Foz do Iguaçu"><option value="Caxias do Sul">
+          </datalist>
           <div class="form-grid-2">
             <div class="field" style="margin-top:14px">
               <label>Diferenciais</label>
@@ -409,7 +453,36 @@
     el.className = 'char-counter' + (len >= 500 ? ' over' : len >= 450 ? ' warn' : '');
   }
 
-  /* ── Error ── */
+  /* ── Field helpers ── */
+  function numericOnly(input) {
+    input.value = input.value.replace(/\D/g, '');
+  }
+
+  function formatValor(input) {
+    let digits = input.value.replace(/\D/g, '');
+    if (digits) {
+      input.value = parseInt(digits, 10).toLocaleString('pt-BR');
+    } else {
+      input.value = '';
+    }
+    clearErr('valor');
+  }
+
+  function clearErr(id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('err');
+    const err = document.getElementById('err-' + id);
+    if (err) err.classList.remove('show');
+  }
+
+  function markErr(id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.add('err');
+    const err = document.getElementById('err-' + id);
+    if (err) err.classList.add('show');
+  }
+
+  /* ── Global error banner ── */
   function showError(msg) {
     document.getElementById('error-text').textContent = msg;
     document.getElementById('error-msg').classList.add('show');
@@ -419,7 +492,7 @@
   /* ── Clear ── */
   function clearForm() {
     ['bairro','cidade','valor','area','quartos','suites','banheiros','vagas','diferenciais']
-      .forEach(id => document.getElementById(id).value = '');
+      .forEach(id => { document.getElementById(id).value = ''; clearErr(id); });
     document.getElementById('results').classList.remove('show');
     document.getElementById('loading').classList.remove('show');
     hideError();
@@ -636,7 +709,12 @@
     const area      = document.getElementById('area').value.trim();
     const platforms = getSelectedPlatforms();
 
-    if (!bairro || !cidade || !valor || !area) { showError('Preencha pelo menos: bairro, cidade, valor e área.'); return; }
+    let hasErr = false;
+    if (!bairro) { markErr('bairro'); hasErr = true; } else { clearErr('bairro'); }
+    if (!cidade) { markErr('cidade'); hasErr = true; } else { clearErr('cidade'); }
+    if (!valor)  { markErr('valor');  hasErr = true; } else { clearErr('valor'); }
+    if (!area)   { markErr('area');   hasErr = true; } else { clearErr('area'); }
+    if (hasErr) return;
     if (!platforms.length) { showError('Selecione pelo menos uma plataforma.'); return; }
 
     lastFormData = {

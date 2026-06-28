@@ -185,15 +185,21 @@ const NAV = [
 function Sidebar({ view, setView, user, naoLidas, col, setCol }) {
   return (
     <aside className={`${col?"w-16":"w-60"} bg-emerald-900 text-white flex flex-col flex-shrink-0 transition-all duration-200`} style={{minHeight:"100vh"}}>
-      <div className="flex items-center gap-3 px-4 py-4 border-b border-emerald-800">
-        <div className="w-9 h-9 bg-emerald-500 rounded-xl flex items-center justify-center flex-shrink-0 font-bold text-lg">P</div>
-        {!col && <span className="font-bold text-lg tracking-tight">PopLar CRM</span>}
-        <button onClick={()=>setCol(!col)}
-          className="ml-auto flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-800 hover:bg-emerald-600 text-emerald-300 hover:text-white transition-colors flex-shrink-0"
-          title={col?"Expandir menu":"Recolher menu"}>
-          {col?"▶":"◀"}
-        </button>
-      </div>
+      {col ? (
+        <div className="flex justify-center py-4 border-b border-emerald-800">
+          <button onClick={()=>setCol(false)}
+            className="flex items-center justify-center w-10 h-10 rounded-lg bg-emerald-800 hover:bg-emerald-600 text-white transition-colors"
+            title="Expandir menu">▶</button>
+        </div>
+      ) : (
+        <div className="flex items-center gap-3 px-4 py-4 border-b border-emerald-800">
+          <div className="w-9 h-9 bg-emerald-500 rounded-xl flex items-center justify-center flex-shrink-0 font-bold text-lg">P</div>
+          <span className="font-bold text-lg tracking-tight">PopLar CRM</span>
+          <button onClick={()=>setCol(true)}
+            className="ml-auto flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-800 hover:bg-emerald-600 text-emerald-300 hover:text-white transition-colors"
+            title="Recolher menu">◀</button>
+        </div>
+      )}
       <nav className="flex-1 py-3 px-2 space-y-0.5">
         {NAV.map(n => (
           <button key={n.id} onClick={()=>setView(n.id)}
